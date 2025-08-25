@@ -15,9 +15,15 @@ fun MainNavHost(
     modifier: Modifier = Modifier
 ) {
     NavHost(navController, startDestination = Screen.Home.route) {
-        composable(Screen.Recommend.route) { RecommendScreen() }
+        composable(Screen.Recommend.route) {
+            RecommendScreen(
+                modifier = modifier
+            )
+        }
         composable(Screen.Home.route) {
-            HomeScreen(){
+            HomeScreen(
+                modifier = modifier
+            ){
                 navController.navigate(Screen.Notification.route)
             }
         }

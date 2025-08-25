@@ -4,15 +4,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import com.aube.presentation.ui.theme.OnBackgroundColor
-import com.aube.presentation.ui.theme.OnSurfaceColor
-import com.aube.presentation.ui.theme.PrimaryContainer
-import com.aube.presentation.ui.theme.PrimaryMain
-import com.aube.presentation.ui.theme.SecondaryContainer
-import com.aube.presentation.ui.theme.SecondaryMain
-import com.aube.presentation.ui.theme.SurfaceColor
-import com.aube.presentation.ui.theme.TertiaryContainer
-import com.aube.presentation.ui.theme.TertiaryMain
 
 private val LightColorScheme = lightColorScheme(
     primary = PrimaryMain,

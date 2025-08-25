@@ -24,11 +24,15 @@ fun LottoResultCard(
     bonus: Int,
     prize: String,
     winners: Int,
+    onRoundSelect: (Int) -> Unit = {},
     onSeeStoresClick: () -> Unit
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "${round}회 당첨결과", style = MaterialTheme.typography.titleLarge)
+            RoundSelector(round, onRoundSelect)
+
+            Spacer(Modifier.height(8.dp))
+
             Text(text = date, style = MaterialTheme.typography.bodyLarge)
 
             Spacer(Modifier.height(8.dp))

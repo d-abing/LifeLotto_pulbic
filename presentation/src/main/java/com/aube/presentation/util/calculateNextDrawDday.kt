@@ -1,8 +1,8 @@
 package com.aube.presentation.util
 
-import java.time.LocalDateTime
 import java.time.DayOfWeek
 import java.time.Duration
+import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
 
 fun calculateNextDrawDday(now: LocalDateTime = LocalDateTime.now()): Duration {
