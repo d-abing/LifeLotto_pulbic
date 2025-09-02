@@ -32,7 +32,6 @@ class FortuneViewModel @Inject constructor(
     init {
         viewModelScope.launch { prefs.flow.collect { _state.update { it.copy(fortune = it.fortune ?: it.fortune) } } }
         ensureToday()
-        // 위 collect는 초기 null일 때만 의미 있으니 간단화하려면 제거 가능
     }
 
     fun ensureToday() {

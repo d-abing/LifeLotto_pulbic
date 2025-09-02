@@ -3,14 +3,15 @@ package com.aube.presentation.util
 import java.time.DayOfWeek
 import java.time.Duration
 import java.time.LocalDateTime
-import java.time.temporal.TemporalAdjusters
 
-fun calculateNextDrawDday(now: LocalDateTime = LocalDateTime.now()): Duration {
-    val drawDay = now.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY))
-        .withHour(20).withMinute(45).withSecond(0).withNano(0)
+fun calculateNextDrawDuration(): Duration {
+    val now = LocalDateTime.now()
+    val nextDrawDateTime = now.with(DayOfWeek.SATURDAY).withHour(20).withMinute(45).withSecond(0)
 
-    return Duration.between(now, drawDay)
+    val target = if (now > nextDrawDateTime) nextDrawDateTime.plusWeeks(1) else nextDrawDateTime
+    return Duration.between(now, target)
 }
+
 
 fun formatDday(duration: Duration): String {
     val days = duration.toDays()

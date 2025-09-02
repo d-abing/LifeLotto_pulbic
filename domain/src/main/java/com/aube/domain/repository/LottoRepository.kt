@@ -1,9 +1,7 @@
 package com.aube.domain.repository
 
-import com.aube.domain.model.LottoSet
-import kotlinx.coroutines.flow.Flow
+import com.aube.domain.model.LottoResult
 
 interface LottoRepository {
-    fun getSavedNumbers(): Flow<List<LottoSet>>
-    suspend fun save(numbers: List<Int>, note: String? = null)
+    suspend fun getLottoResult(round: Int): LottoResult
 }

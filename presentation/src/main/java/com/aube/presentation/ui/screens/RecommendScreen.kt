@@ -37,6 +37,7 @@ fun RecommendScreen(
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         Text("🎉 추천 번호가 도착했어요!", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(40.dp))
 
@@ -72,7 +73,7 @@ fun RecommendScreen(
 
         Spacer(Modifier.height(32.dp))
 
-        Text("📦 저장된 추천 번호", style = MaterialTheme.typography.titleMedium)
+        Text("📦 저장된 추천 번호 보기", style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(8.dp))
 
         LazyColumn(

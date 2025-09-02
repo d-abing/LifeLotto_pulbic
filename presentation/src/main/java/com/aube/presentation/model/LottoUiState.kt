@@ -1,25 +1,60 @@
 package com.aube.presentation.model
 
+import com.aube.domain.model.LottoResult
+import java.text.NumberFormat
+import java.util.Locale
+
 data class LottoUiState(
-    val round: Int,
-    val date: String,
-    val winningNumbers: List<Int>,
-    val bonusNumber: Int,
-    val totalPrize: String,
-    val winnerCount: Int,
-    val myNumbers: List<Int>? = null,
+    val round: Int = 0,
+    val date: String = "",
+    val winningNumbers: List<Int> = emptyList(),
+    val bonus: Int = 0,
+    val firstPrize: String = "",
+    val firstCount: Int = 0,
+    val myNumbers: List<List<Int>>? = null,
     val matchResult: MatchResult = MatchResult.BeforeDraw
-) {
-    companion object {
-        fun mock() = LottoUiState(
-            round = 1183,
-            date = "2025-08-02",
-            winningNumbers = listOf(4, 15, 17, 23, 27, 36),
-            bonusNumber = 31,
-            totalPrize = "270억 원",
-            winnerCount = 13,
-            myNumbers = listOf(4, 15, 23, 27, 30, 36),
-            matchResult = MatchResult.Win(rank = 5, prize = "5만 원")
-        )
-    }
+)
+
+
+
+fun LottoResult.toUiState(myNumbers: List<List<Int>>? = null): LottoUiState {
+    val matchResult = myNumbers?.let { allNumbers ->
+        if (winningNumbers.isEmpty()) {
+            MatchResult.BeforeDraw
+        } else {
+            val results = allNumbers.map { numbers ->
+                val matchCount = winningNumbers.count { it in numbers }
+                val hasBonus = bonus in numbers
+
+                when {
+                    matchCount == 6 -> 1
+                    matchCount == 5 && hasBonus -> 2
+                    matchCount == 5 -> 3
+                    matchCount == 4 -> 4
+                    matchCount == 3 -> 5
+                    else -> null
+                }
+            }.filterNotNull()
+
+            if (results.isEmpty()) {
+                MatchResult.Lose
+            } else {
+                val bestRank = results.min()
+                MatchResult.Win(rank = bestRank)
+            }
+        }
+    } ?: MatchResult.BeforeDraw
+
+    val formattedPrize = NumberFormat.getNumberInstance(Locale.KOREA).format(firstPrize) + "원"
+
+    return LottoUiState(
+        round = round,
+        date = date,
+        winningNumbers = winningNumbers,
+        bonus = bonus,
+        firstPrize = formattedPrize,
+        firstCount = firstCount,
+        myNumbers = myNumbers,
+        matchResult = matchResult
+    )
 }

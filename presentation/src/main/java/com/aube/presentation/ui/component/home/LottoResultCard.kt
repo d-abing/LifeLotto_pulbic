@@ -1,5 +1,6 @@
 package com.aube.presentation.ui.component.home
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun LottoResultCard(
+    latestRound: Int,
     round: Int,
     date: String,
     numbers: List<Int>,
@@ -29,16 +30,14 @@ fun LottoResultCard(
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
-            RoundSelector(round, onRoundSelect)
+            RoundSelector(latestRound, round, date, onRoundSelect)
 
-            Spacer(Modifier.height(8.dp))
-
-            Text(text = date, style = MaterialTheme.typography.bodyLarge)
-
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
 
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
                 numbers.forEach {
                     LottoBall(number = it)
@@ -49,9 +48,9 @@ fun LottoResultCard(
                 LottoBall(number = bonus)
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
 
-            Text("1등 총 당첨금: $prize (${winners}명)")
+            Text("1등 당첨금: $prize (${winners}명)")
 
             Spacer(Modifier.height(8.dp))
 
