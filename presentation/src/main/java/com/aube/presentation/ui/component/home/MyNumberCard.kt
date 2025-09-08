@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,10 +28,15 @@ import com.aube.presentation.model.MatchResult
 @Composable
 fun MyNumberCard(
     myNumbers: List<List<Int>>?,
-    result: MatchResult,
+    result: MatchResult?,
     onRegisterClick: () -> Unit
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiary
+        ),
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -39,13 +45,15 @@ fun MyNumberCard(
             ) {
                 Text("내 번호 결과", style = MaterialTheme.typography.titleLarge)
 
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add",
-                    modifier = Modifier.clickable {
-                        onRegisterClick()
-                    }
-                )
+                if (!myNumbers.isNullOrEmpty()) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add",
+                        modifier = Modifier.clickable {
+                            onRegisterClick()
+                        }
+                    )
+                }
             }
 
             Spacer(Modifier.height(8.dp))
@@ -98,6 +106,7 @@ fun MyNumberCard(
                         MatchResult.BeforeDraw -> Text("추첨 전입니다.")
                         is MatchResult.Win -> Text("\uD83C\uDF89 ${result.rank}등 당첨! 축하합니다 \uD83C\uDF89", fontWeight = FontWeight.SemiBold)
                         is MatchResult.Lose -> Text("아쉽게도 낙첨되었습니다.")
+                        null -> TODO()
                     }
                 }
             }

@@ -1,8 +1,9 @@
 package com.aube.domain.model
 
+import java.time.LocalDateTime
+
 data class LottoSet(
-    val id: Long = 0L,
+    val id: Int,
     val numbers: List<Int>,
-    val createdAt: Long,
-    val note: String? = null
+    val date: LocalDateTime
 )

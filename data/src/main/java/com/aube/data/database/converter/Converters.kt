@@ -6,13 +6,13 @@ import java.time.LocalDateTime
 class LifeLottoTypeConverters {
 
     @TypeConverter
-    fun fromNestedList(list: List<List<Int>>): String =
-        list.joinToString("|") { it.joinToString(",") }
+    fun fromList(list: List<Int>): String =
+        list.joinToString("|")
 
     @TypeConverter
-    fun toNestedList(data: String): List<List<Int>> =
+    fun toList(data: String): List<Int> =
         if (data.isBlank()) emptyList()
-        else data.split("|").map { it.split(",").map(String::toInt) }
+        else data.split("|").map(String::toInt)
 
     @TypeConverter
     fun fromLocalDateTime(dateTime: LocalDateTime): String =

@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -26,8 +25,6 @@ import com.aube.presentation.ui.component.home.MyNumberCard
 import com.aube.presentation.ui.component.home.TodayFortuneCard
 import com.aube.presentation.viewmodel.FortuneViewModel
 import com.aube.presentation.viewmodel.LottoViewModel
-import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 @Composable
 fun HomeScreen(
@@ -35,15 +32,16 @@ fun HomeScreen(
     fortuneViewModel: FortuneViewModel = hiltViewModel(),
     lottoViewModel: LottoViewModel,
     onRegisterClick: () -> Unit,
-    onRecommendWithLuckyNumbers: () -> Unit
+    onRecommendWithLuckyNumbers: (List<Int>) -> Unit
 ) {
     val context = LocalContext.current
-    val latestRound = remember { estimateLatestRound() }
-    val lottoUiState by lottoViewModel.uiState.collectAsState()
+    val latestRound by lottoViewModel.latestRound.collectAsState()
+    val lottoUiState by lottoViewModel.lottoUiState.collectAsState()
+    val myLottoNumbersUiState by lottoViewModel.myLottoNumbersUiState.collectAsState()
     val fortuneUiState by fortuneViewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
-        lottoViewModel.loadLotto(latestRound)
+        lottoViewModel.loadHome()
     }
 
     Column(
@@ -84,8 +82,8 @@ fun HomeScreen(
         Spacer(Modifier.height(12.dp))
 
         MyNumberCard(
-            myNumbers = lottoUiState.myNumbers,
-            result = lottoUiState.matchResult,
+            myNumbers = myLottoNumbersUiState.myNumbers,
+            result = myLottoNumbersUiState.matchResult,
             onRegisterClick = onRegisterClick,
         )
 
@@ -93,15 +91,7 @@ fun HomeScreen(
 
         TodayFortuneCard(
             state = fortuneUiState,
-            onRecommendWithLuckyNumbers = onRecommendWithLuckyNumbers
+            onRecommendWithLuckyNumbers = { luckyNumbers -> onRecommendWithLuckyNumbers(luckyNumbers) }
         )
     }
 }
-
-private fun estimateLatestRound(): Int {
-    val firstDrawDate = LocalDate.of(2002, 12, 7)
-    val today = LocalDate.now()
-    val weeks = ChronoUnit.WEEKS.between(firstDrawDate, today)
-    return weeks.toInt() + 1
-}
-

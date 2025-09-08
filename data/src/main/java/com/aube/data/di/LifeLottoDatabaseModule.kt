@@ -2,7 +2,9 @@ package com.aube.data.di
 
 import android.content.Context
 import androidx.room.Room
+import com.aube.data.database.dao.LottoDrawDao
 import com.aube.data.database.dao.MyLottoNumbersDao
+import com.aube.data.database.dao.RecommendDao
 import com.aube.data.database.database.LifeLottoDatabase
 import dagger.Module
 import dagger.Provides
@@ -22,11 +24,23 @@ object LifeLottoDatabaseModule {
             context,
             LifeLottoDatabase::class.java,
             "life_lotto_database"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides
     fun provideMyLottoNumbersDao(database: LifeLottoDatabase): MyLottoNumbersDao {
         return database.myLottoNumbersDao()
+    }
+
+    @Provides
+    fun provideRecommendDao(database: LifeLottoDatabase): RecommendDao {
+        return database.recommendDao()
+    }
+
+    @Provides
+    fun provideLottoDrawDao(database: LifeLottoDatabase): LottoDrawDao {
+        return database.lottoDrawDao()
     }
 }

@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.aube.presentation.model.Fortune
 import com.aube.presentation.model.LottoRecommendation
+import com.aube.presentation.model.RangeFilter
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -22,7 +23,6 @@ object FortunePrefsKeys {
     val LAST_SUMMARY = stringPreferencesKey("last_summary")
     val LAST_NUMBERS = stringPreferencesKey("last_numbers")
     val LAST_TIME = stringPreferencesKey("last_time")
-    val LAST_ADVICE = stringPreferencesKey("last_advice")
 }
 
 @Singleton
@@ -51,6 +51,7 @@ class FortunePrefs @Inject constructor(
     }
 }
 
+@Singleton
 class RecommendationPrefs @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
@@ -58,6 +59,7 @@ class RecommendationPrefs @Inject constructor(
 
     private val keyDate = longPreferencesKey("last_recommend_date")
     private val keyNumbers = stringPreferencesKey("last_recommend_numbers")
+    private val keyRangeFilter = stringPreferencesKey("range_filter")
 
     val today: Flow<LottoRecommendation?> = context.dataStore.data.map { prefs ->
         val savedDate = prefs[keyDate] ?: return@map null
@@ -65,10 +67,20 @@ class RecommendationPrefs @Inject constructor(
         LottoRecommendation(savedDate, numbers)
     }
 
+    val rangeFilter: Flow<String> = context.dataStore.data.map { prefs ->
+        prefs[keyRangeFilter] ?: RangeFilter.LAST10.name
+    }
+
     suspend fun saveToday(rec: LottoRecommendation) {
         context.dataStore.edit { prefs ->
             prefs[keyDate] = rec.dateEpochDay
             prefs[keyNumbers] = rec.numbers.joinToString(",")
+        }
+    }
+
+    suspend fun setRangeFilter(option: String) {
+        context.dataStore.edit { prefs ->
+            prefs[keyRangeFilter] = option
         }
     }
 }

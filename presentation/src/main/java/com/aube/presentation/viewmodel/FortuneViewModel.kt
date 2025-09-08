@@ -2,7 +2,7 @@ package com.aube.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aube.presentation.model.Fortune
+import com.aube.presentation.model.FortuneUiState
 import com.aube.presentation.util.fortune.FortuneGenerator
 import com.aube.presentation.util.fortune.FortunePrefs
 import com.aube.presentation.util.fortune.SeedKeyProvider
@@ -15,10 +15,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
-data class FortuneUiState(
-    val isLoading: Boolean = true,
-    val fortune: Fortune? = null
-)
+
 
 @HiltViewModel
 class FortuneViewModel @Inject constructor(

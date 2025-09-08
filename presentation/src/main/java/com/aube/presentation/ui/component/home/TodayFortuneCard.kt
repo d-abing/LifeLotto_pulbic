@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,16 +20,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.aube.presentation.viewmodel.FortuneUiState
+import com.aube.presentation.model.FortuneUiState
 
 @Composable
 fun TodayFortuneCard(
     state: FortuneUiState,
-    onRecommendWithLuckyNumbers: () -> Unit
+    onRecommendWithLuckyNumbers: (List<Int>) -> Unit
 ) {
     Card(
         shape = RoundedCornerShape(20.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiary
+        ),
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("오늘의 재물운", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(4.dp))
@@ -41,16 +45,16 @@ fun TodayFortuneCard(
                 Spacer(Modifier.height(4.dp))
                 Text("럭키 넘버: ${f.luckyNumbers.joinToString(", ")}", style = MaterialTheme.typography.bodyMedium)
                 Text("좋은 시간대: ${f.luckyTime}", style = MaterialTheme.typography.bodyMedium)
-            }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                ,
-                contentAlignment = Alignment.Center
-            ) {
-                Button(onClick = onRecommendWithLuckyNumbers) {
-                    Text("럭키 넘버 포함 번호 추천 받기")
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                    ,
+                    contentAlignment = Alignment.Center
+                ) {
+                    Button(onClick = { onRecommendWithLuckyNumbers(state.fortune.luckyNumbers) }) {
+                        Text("럭키 넘버 포함 번호 추천 받기")
+                    }
                 }
             }
         }

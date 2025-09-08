@@ -1,9 +1,12 @@
 package com.aube.data.di
 
+import com.aube.data.database.dao.LottoDrawDao
 import com.aube.data.repository.LottoRepositoryImpl
 import com.aube.data.retrofit.LottoApiService
 import com.aube.domain.repository.LottoRepository
 import com.aube.domain.usecase.GetLottoResultUseCase
+import com.aube.domain.usecase.ObserveDrawHistoryUseCase
+import com.aube.domain.usecase.SyncDrawHistoryUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,12 +28,25 @@ object LottoModule {
     }
 
     @Provides
-    fun provideLottoRepository(api: LottoApiService): LottoRepository {
-        return LottoRepositoryImpl(api)
+    fun provideLottoRepository(
+        api: LottoApiService,
+        dao: LottoDrawDao
+    ): LottoRepository {
+        return LottoRepositoryImpl(api, dao)
     }
 
     @Provides
     fun provideGetLottoResultUseCase(repo: LottoRepository): GetLottoResultUseCase {
         return GetLottoResultUseCase(repo)
+    }
+
+    @Provides
+    fun provideObserveDrawHistoryUseCase(repo: LottoRepository): ObserveDrawHistoryUseCase {
+        return ObserveDrawHistoryUseCase(repo)
+    }
+
+    @Provides
+    fun provideSyncDrawHistoryUseCase(repo: LottoRepository): SyncDrawHistoryUseCase {
+        return SyncDrawHistoryUseCase(repo)
     }
 }

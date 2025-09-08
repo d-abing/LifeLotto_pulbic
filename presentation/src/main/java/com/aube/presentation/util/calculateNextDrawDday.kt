@@ -21,7 +21,11 @@ fun formatDday(duration: Duration): String {
     return "D-${days}일 ${hours}시간 ${minutes}분 ${seconds}초 남음"
 }
 
-fun generateLottoNumbers(): List<Int> {
-    val numbers = (1..45).shuffled().take(6).sorted()
-    return numbers
+fun generateLottoNumbers(numbers: List<Int>? = null): List<Int> {
+    return if (numbers == null) {
+        (1..45).shuffled().take(6).sorted()
+    } else {
+        val remaining = (1..45).filter { it !in numbers }
+        (numbers + remaining.shuffled().take(6 - numbers.size)).sorted()
+    }
 }

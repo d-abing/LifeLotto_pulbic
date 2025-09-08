@@ -5,16 +5,16 @@ import androidx.compose.ui.graphics.Color
 //TODO 수정
 
 // Primary color group
-val PrimaryMain = Color(0xFF344346)
-val PrimaryContainer = Color(0xFF90A5CC)
+val PrimaryMain = Color(0xFF003B24)
+val PrimaryContainer = Color(0xFF2A3833)
 
 // Secondary color group
-val SecondaryMain = Color(0xFFD3DEDE)
-val SecondaryContainer = Color(0xFFA7B0AC)
+val SecondaryMain = Color(0xFFD1A636)
+val SecondaryContainer = Color(0xFFD4C38E)
 
 // Tertiary color group
-val TertiaryMain = Color(0xFF85AEB4)
-val TertiaryContainer = Color(0xFFD7E9E6)
+val TertiaryMain = Color(0xFFE3DDB8)
+val TertiaryContainer = Color(0xFFFFFFFF)
 
 // Additional colors
 val SurfaceColor = Color.White

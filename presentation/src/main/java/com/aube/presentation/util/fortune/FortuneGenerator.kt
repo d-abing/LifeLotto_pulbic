@@ -23,7 +23,7 @@ object FortuneGenerator {
             score = score,
             summary = summaries[rnd.nextInt(summaries.size)],
             luckyNumbers = nums,
-            luckyTime = "$hour ~ ${hour.replace(":00",":30")}",
+            luckyTime = "$hour - ${hour.replace(":00",":30")}",
         )
     }
 }
