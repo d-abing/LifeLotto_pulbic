@@ -1,6 +1,7 @@
 package com.aube.presentation.util.fortune
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
@@ -57,18 +58,41 @@ class RecommendationPrefs @Inject constructor(
 ) {
     private val Context.dataStore by preferencesDataStore("recommend_prefs")
 
+    // 기존 키
     private val keyDate = longPreferencesKey("last_recommend_date")
     private val keyNumbers = stringPreferencesKey("last_recommend_numbers")
     private val keyRangeFilter = stringPreferencesKey("range_filter")
 
+    // 신규 키
+    private val keyUseRandom = booleanPreferencesKey("use_random_for_recommend")
+    private val keyTopCount = intPreferencesKey("use_top_count")
+    private val keyLowCount = intPreferencesKey("use_low_count")
+
+    // 오늘 추천 번호
     val today: Flow<LottoRecommendation?> = context.dataStore.data.map { prefs ->
         val savedDate = prefs[keyDate] ?: return@map null
         val numbers = prefs[keyNumbers]?.split(",")?.mapNotNull { it.toIntOrNull() } ?: return@map null
         LottoRecommendation(savedDate, numbers)
     }
 
+    // 통계 범위 필터 (LAST10 / LAST30 / …)
     val rangeFilter: Flow<String> = context.dataStore.data.map { prefs ->
         prefs[keyRangeFilter] ?: RangeFilter.LAST10.name
+    }
+
+    // 추천 모드 (통계 미사용 = 랜덤)
+    val useRandomForRecommend: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[keyUseRandom] ?: false
+    }
+
+    // 추천에 사용할 많이 나온 번호 개수 (0..8)
+    val useTopCount: Flow<Int> = context.dataStore.data.map { prefs ->
+        prefs[keyTopCount] ?: 3
+    }
+
+    // 추천에 사용할 적게 나온 번호 개수 (0..8)
+    val useLowCount: Flow<Int> = context.dataStore.data.map { prefs ->
+        prefs[keyLowCount] ?: 3
     }
 
     suspend fun saveToday(rec: LottoRecommendation) {
@@ -81,6 +105,24 @@ class RecommendationPrefs @Inject constructor(
     suspend fun setRangeFilter(option: String) {
         context.dataStore.edit { prefs ->
             prefs[keyRangeFilter] = option
+        }
+    }
+
+    suspend fun setUseRandomForRecommend(value: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[keyUseRandom] = value
+        }
+    }
+
+    suspend fun setUseTopCount(value: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[keyTopCount] = value.coerceIn(0, 6)
+        }
+    }
+
+    suspend fun setUseLowCount(value: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[keyLowCount] = value.coerceIn(0, 6)
         }
     }
 }

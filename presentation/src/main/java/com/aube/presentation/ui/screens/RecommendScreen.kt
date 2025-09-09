@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -44,6 +45,14 @@ fun RecommendScreen(
     val state by recommendViewModel.recommendNumbers.collectAsState()
     val saved by recommendViewModel.savedNumbers.collectAsState()
     val rangeFilter by statisticsViewModel.filterFlow.collectAsState()
+    val statisticsUi by statisticsViewModel.ui.collectAsState()
+
+    val statisticsMessage by remember(rangeFilter, statisticsUi.useRandomForRecommend) {
+        derivedStateOf {
+            if (statisticsUi.useRandomForRecommend) "로 추천된 번호입니다."
+            else " 당첨 통계를 기반으로 추천된 번호입니다."
+        }
+    }
 
     LaunchedEffect(numbers) {
         if (numbers != null) {
@@ -76,7 +85,12 @@ fun RecommendScreen(
 
         Spacer(Modifier.height(8.dp))
 
-        OutlinedButton(onClick = recommendViewModel::saveCurrent) {
+        OutlinedButton(
+            onClick = {
+                recommendViewModel.saveCurrent()
+
+            }
+        ) {
             Text(
                 text = "이 번호 저장하기",
                 style = MaterialTheme.typography.bodyLarge
@@ -92,9 +106,13 @@ fun RecommendScreen(
                         fontWeight = FontWeight.SemiBold
                     )
                 ) {
-                    append(rangeFilter.label)
+                    if (!statisticsUi.useRandomForRecommend) {
+                        append(rangeFilter.label)
+                    } else {
+                        append("무작위")
+                    }
                 }
-                append(" 당첨 통계를 기반으로 추천된 번호입니다.")
+                append(statisticsMessage)
             },
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center
@@ -103,7 +121,7 @@ fun RecommendScreen(
         Spacer(Modifier.height(8.dp))
 
         Text(
-            "🧐 어떤 통계를 사용하는지 궁금해요 >",
+            "🧐 어떤 통계를 사용할까요? >",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.clickable(
@@ -114,7 +132,11 @@ fun RecommendScreen(
 
         Spacer(Modifier.height(24.dp))
 
-        SavedNumbers(saved, modifier, recommendViewModel)
+        SavedNumbers(
+            saved = saved,
+            modifier = Modifier.weight(1f),
+            recommendViewModel = recommendViewModel
+        )
     }
 }
 

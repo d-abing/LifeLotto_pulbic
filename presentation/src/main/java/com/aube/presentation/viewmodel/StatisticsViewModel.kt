@@ -20,12 +20,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-
 @HiltViewModel
 class StatisticsViewModel @Inject constructor(
     private val prefs: RecommendationPrefs,
     private val syncDrawHistoryUseCase: SyncDrawHistoryUseCase,
-    private val observeDrawHistory: ObserveDrawHistoryUseCase, // Flow<List<LottoDraw>>
+    private val observeDrawHistory: ObserveDrawHistoryUseCase,
 ) : ViewModel() {
 
     data class UiState(
@@ -33,7 +32,11 @@ class StatisticsViewModel @Inject constructor(
         val all: List<LottoDraw> = emptyList(),
         val stats: StatsResult? = null,
         val isSyncing: Boolean = false,
-        val progress: Float? = null
+        val progress: Float? = null,
+
+        val useRandomForRecommend: Boolean = false,
+        val useTopCount: Int = 4,
+        val useLowCount: Int = 4,
     )
 
     private val syncing = MutableStateFlow(false)
@@ -43,39 +46,90 @@ class StatisticsViewModel @Inject constructor(
             .map { runCatching { RangeFilter.valueOf(it) }.getOrDefault(RangeFilter.LAST10) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RangeFilter.LAST10)
 
+    private val useRandomFlow: StateFlow<Boolean> =
+        prefs.useRandomForRecommend
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    private val useTopCountFlow: StateFlow<Int> =
+        prefs.useTopCount
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 4)
+
+    private val useLowCountFlow: StateFlow<Int> =
+        prefs.useLowCount
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 4)
+
     private val drawsFlow: Flow<List<LottoDraw>> = observeDrawHistory()
 
     val ui: StateFlow<UiState> =
-        combine(drawsFlow, filterFlow, syncing) { all, filter, isSync ->
-            val sorted = all.sortedByDescending { it.round }
-            val sliced = when (filter) {
-                RangeFilter.LAST10 -> sorted.take(10)
-                RangeFilter.LAST30 -> sorted.take(30)
-                RangeFilter.LAST50 -> sorted.take(50)
-                RangeFilter.ALL    -> sorted
-            }
-            UiState(
-                filter = filter,
-                all = sorted,
-                stats = buildStats(sliced),
-                isSyncing = isSync,
-                progress = null
-            )
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState())
+    combine(
+    listOf(drawsFlow, filterFlow, syncing, useRandomFlow, useTopCountFlow, useLowCountFlow)
+    ) { array ->
+        val all = array[0] as List<LottoDraw>
+        val filter = array[1] as RangeFilter
+        val isSync = array[2] as Boolean
+        val useRandom = array[3] as Boolean
+        val topCnt = array[4] as Int
+        val lowCnt = array[5] as Int
+
+        val sorted = all.sortedByDescending { it.round }
+        val sliced = when (filter) {
+            RangeFilter.LAST10 -> sorted.take(10)
+            RangeFilter.LAST30 -> sorted.take(30)
+            RangeFilter.LAST50 -> sorted.take(50)
+            RangeFilter.ALL    -> sorted
+        }
+
+        UiState(
+            filter = filter,
+            all = sorted,
+            stats = buildStats(sliced),
+            isSyncing = isSync,
+            progress = null,
+            useRandomForRecommend = useRandom,
+            useTopCount = topCnt.coerceIn(0, 6),
+            useLowCount = lowCnt.coerceIn(0, 6)
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState())
+
 
     init {
         startSync()
     }
 
+    /** 통계 범위 chip */
     fun setFilter(filter: RangeFilter) {
-        viewModelScope.launch { prefs.setRangeFilter(filter.name) }
+            viewModelScope.launch { prefs.setRangeFilter(filter.name) }
+
+    }
+
+    /** 추천 모드 토글 (통계 미사용=랜덤) */
+    fun setUseRandomForRecommend(enabled: Boolean) {
+        viewModelScope.launch { prefs.setUseRandomForRecommend(enabled) }
+    }
+
+    /** 추천에 사용할 개수 슬라이더 (0..8) */
+    fun setUseTopCount(value: Int) {
+        viewModelScope.launch {
+            prefs.setUseTopCount(value)
+            if (value + ui.value.useLowCount > 6) {
+                prefs.setUseLowCount(6 - value)
+            }
+        }
+    }
+    fun setUseLowCount(value: Int) {
+        viewModelScope.launch {
+            prefs.setUseLowCount(value)
+            if (value + ui.value.useTopCount > 6) {
+                prefs.setUseTopCount(6 - value)
+            }
+        }
     }
 
     fun startSync() {
         viewModelScope.launch {
             syncing.value = true
-            val result = runCatching { syncDrawHistoryUseCase() }
-            result.onFailure { e -> Log.e("StatisticsVM", "Sync failed", e) }
+            runCatching { syncDrawHistoryUseCase() }
+                .onFailure { e -> Log.e("StatisticsVM", "Sync failed", e) }
             syncing.value = false
         }
     }
@@ -86,7 +140,7 @@ private fun buildStats(draws: List<LottoDraw>): StatsResult {
     draws.forEach { d -> d.numbers.forEach { n -> if (n in 1..45) freq[n]++ } }
     val pairs = (1..45).map { it to freq[it] }
     val max = pairs.maxOfOrNull { it.second } ?: 0
-    val top6 = pairs.sortedByDescending { it.second }.take(6)
-    val low6 = pairs.sortedBy { it.second }.take(6)
-    return StatsResult(freq, max, top6, low6)
+    val top8 = pairs.sortedByDescending { it.second }.take(8)
+    val low8 = pairs.sortedBy { it.second }.take(8)
+    return StatsResult(freq, max, top8, low8)
 }

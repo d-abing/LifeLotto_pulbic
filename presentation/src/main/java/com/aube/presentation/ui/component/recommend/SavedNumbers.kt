@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -30,7 +31,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,68 +41,80 @@ import androidx.compose.ui.unit.dp
 import com.aube.domain.model.LottoSet
 import com.aube.presentation.ui.component.home.LottoBall
 import com.aube.presentation.viewmodel.RecommendViewModel
-import kotlinx.coroutines.delay
-
+import kotlinx.coroutines.android.awaitFrame
 
 @Composable
 fun ColumnScope.SavedNumbers(
     saved: List<LottoSet>,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     recommendViewModel: RecommendViewModel,
 ) {
     val showSaved = saved.isNotEmpty()
 
     AnimatedVisibility(
         visible = showSaved,
-        enter = fadeIn(animationSpec = tween(220)) +
-                expandVertically(
-                    expandFrom = Alignment.Top,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessMediumLow
-                    )
-                ),
+        modifier = modifier.fillMaxWidth(),
+        enter = fadeIn(tween(220)) + expandVertically(
+            expandFrom = Alignment.Top,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMediumLow
+            )
+        ),
         exit = shrinkVertically(
             shrinkTowards = Alignment.Top,
             animationSpec = tween(180)
         ) + fadeOut(tween(180))
     ) {
         Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.tertiary
-            ),
+            modifier = Modifier.fillMaxSize(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiary),
         ) {
             Column(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxSize().padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.Top
             ) {
                 Text("📦 저장된 추천 번호", style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(16.dp))
 
+                val shownIds = remember { mutableStateMapOf<Int, Boolean>() }
+                val listState = rememberLazyListState()
+                var prevSize by remember { mutableIntStateOf(saved.size) }
+
+                LaunchedEffect(saved.size) {
+                    if (saved.size > prevSize && saved.isNotEmpty()) {
+                        awaitFrame()
+                        listState.animateScrollToItem(saved.lastIndex)
+                    }
+                    prevSize = saved.size
+                }
+
                 LazyColumn(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    state = listState
                 ) {
                     items(
                         items = saved,
-                        key = { it.id }
+                        key = { it.id } // id는 안정적으로 유지되어야 함
                     ) { lottoSet ->
-                        var itemVisible by remember { mutableStateOf(false) }
+                        val alreadyShown = shownIds[lottoSet.id] == true
+                        // 처음 나타날 때만 enter 애니메이션 수행, 그 후엔 None
+                        val enter = if (alreadyShown) fadeIn(initialAlpha = 0f) else
+                            slideInHorizontally(
+                                initialOffsetX = { it / 6 },
+                                animationSpec = tween(220, easing = FastOutSlowInEasing)
+                            ) + fadeIn(tween(200))
+
+                        // 첫 구성 시 한 번만 표시 플래그 남김
                         LaunchedEffect(lottoSet.id) {
-                            delay((saved.indexOf(lottoSet) * 40L).coerceAtMost(240L))
-                            itemVisible = true
+                            if (!alreadyShown) shownIds[lottoSet.id] = true
                         }
 
                         AnimatedVisibility(
-                            visible = itemVisible,
-                            enter = slideInHorizontally(
-                                initialOffsetX = { it / 6 },
-                                animationSpec = tween(220, easing = FastOutSlowInEasing)
-                            ) + fadeIn(tween(200)),
+                            visible = true,
+                            enter = enter,
                             exit = fadeOut(tween(120))
                         ) {
                             Row(
@@ -110,7 +124,9 @@ fun ColumnScope.SavedNumbers(
                                 lottoSet.numbers.forEach {
                                     LottoBall(it, modifier = Modifier.size(40.dp))
                                 }
-                                OutlinedButton(onClick = { recommendViewModel.deleteCurrent(lottoSet.id) }) {
+                                OutlinedButton(
+                                    onClick = { recommendViewModel.deleteCurrent(lottoSet.id) }
+                                ) {
                                     Text("삭제", style = MaterialTheme.typography.labelMedium)
                                 }
                             }

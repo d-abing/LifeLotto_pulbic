@@ -35,10 +35,7 @@ fun MainNavHost(
                     else numbers?.split(",")?.mapNotNull { it.toIntOrNull() },
                 modifier = modifier,
                 onStatisticsClick = {
-                    navController.navigate(Screen.Statistics.route) {
-                        popUpTo(0) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    navController.navigate(Screen.Statistics.route)
                 }
             )
         }
