@@ -1,6 +1,10 @@
 package com.aube.presentation.model
 
+import com.aube.domain.model.MyLottoSet
+
 data class MyLottoNumbersUiState(
-    val myNumbers: List<List<Int>>? = emptyList(),
-    val matchResult: MatchResult? = MatchResult.BeforeDraw
+    val beforeDraw: List<MyLottoSet> = emptyList(),
+    val myNumbers: List<MyLottoSet> = emptyList(),
+    val matchResult: MatchResult? = null,
+    val matchHistory: List<Int> = emptyList()
 )

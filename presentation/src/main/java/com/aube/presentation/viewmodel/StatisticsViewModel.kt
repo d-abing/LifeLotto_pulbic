@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -35,8 +36,8 @@ class StatisticsViewModel @Inject constructor(
         val progress: Float? = null,
 
         val useRandomForRecommend: Boolean = false,
-        val useTopCount: Int = 4,
-        val useLowCount: Int = 4,
+        val useTopCount: Int = 3,
+        val useLowCount: Int = 3,
     )
 
     private val syncing = MutableStateFlow(false)
@@ -52,11 +53,11 @@ class StatisticsViewModel @Inject constructor(
 
     private val useTopCountFlow: StateFlow<Int> =
         prefs.useTopCount
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 4)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 3)
 
     private val useLowCountFlow: StateFlow<Int> =
         prefs.useLowCount
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 4)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 3)
 
     private val drawsFlow: Flow<List<LottoDraw>> = observeDrawHistory()
 
@@ -89,25 +90,28 @@ class StatisticsViewModel @Inject constructor(
             useTopCount = topCnt.coerceIn(0, 6),
             useLowCount = lowCnt.coerceIn(0, 6)
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState())
+    }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState())
 
 
     init {
         startSync()
     }
 
-    /** 통계 범위 chip */
     fun setFilter(filter: RangeFilter) {
             viewModelScope.launch { prefs.setRangeFilter(filter.name) }
 
     }
 
-    /** 추천 모드 토글 (통계 미사용=랜덤) */
     fun setUseRandomForRecommend(enabled: Boolean) {
-        viewModelScope.launch { prefs.setUseRandomForRecommend(enabled) }
+        viewModelScope.launch {
+            prefs.setUseRandomForRecommend(enabled)
+            prefs.setUseTopCount(if (enabled) 0 else 3)
+            prefs.setUseLowCount(if (enabled) 0 else 3)
+        }
     }
 
-    /** 추천에 사용할 개수 슬라이더 (0..8) */
     fun setUseTopCount(value: Int) {
         viewModelScope.launch {
             prefs.setUseTopCount(value)
@@ -142,5 +146,6 @@ private fun buildStats(draws: List<LottoDraw>): StatsResult {
     val max = pairs.maxOfOrNull { it.second } ?: 0
     val top8 = pairs.sortedByDescending { it.second }.take(8)
     val low8 = pairs.sortedBy { it.second }.take(8)
-    return StatsResult(freq, max, top8, low8)
+    val freqList = freq.toList()
+    return StatsResult(freqList, max, top8, low8)
 }

@@ -2,8 +2,10 @@ package com.aube.data.di
 
 import com.aube.data.database.dao.MyLottoNumbersDao
 import com.aube.data.repository.MyLottoNumbersRepositoryImpl
+import com.aube.data.retrofit.LottoApiService
 import com.aube.domain.repository.MyLottoNumbersRepository
 import com.aube.domain.usecase.DeleteMyLottoNumbersUseCase
+import com.aube.domain.usecase.GetMyLottoNumbersHistoryUseCase
 import com.aube.domain.usecase.GetMyLottoNumbersUseCase
 import com.aube.domain.usecase.SaveMyLottoNumbersUseCase
 import dagger.Module
@@ -19,9 +21,10 @@ object MyLottoNumbersModule {
     @Provides
     @Singleton
     fun provideMyLottoNumbersRepository(
+        api: LottoApiService,
         dao: MyLottoNumbersDao
     ): MyLottoNumbersRepository {
-        return MyLottoNumbersRepositoryImpl(dao)
+        return MyLottoNumbersRepositoryImpl(api, dao)
     }
 
     @Provides
@@ -38,4 +41,9 @@ object MyLottoNumbersModule {
     fun provideDeleteMyLottoNumbersUseCase(
         repo: MyLottoNumbersRepository
     ) = DeleteMyLottoNumbersUseCase(repo)
+
+    @Provides
+    fun provideGetMyLottoNumbersHistoryUseCase(
+        repo: MyLottoNumbersRepository
+    ) = GetMyLottoNumbersHistoryUseCase(repo)
 }

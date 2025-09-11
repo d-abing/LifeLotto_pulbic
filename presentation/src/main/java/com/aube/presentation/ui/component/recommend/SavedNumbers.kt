@@ -40,14 +40,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.aube.domain.model.LottoSet
 import com.aube.presentation.ui.component.home.LottoBall
-import com.aube.presentation.viewmodel.RecommendViewModel
 import kotlinx.coroutines.android.awaitFrame
 
 @Composable
 fun ColumnScope.SavedNumbers(
+    title: String,
     saved: List<LottoSet>,
     modifier: Modifier = Modifier,
-    recommendViewModel: RecommendViewModel,
+    onDeleteClick: (Int) -> Unit,
 ) {
     val showSaved = saved.isNotEmpty()
 
@@ -75,7 +75,7 @@ fun ColumnScope.SavedNumbers(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                Text("📦 저장된 추천 번호", style = MaterialTheme.typography.titleMedium)
+                Text(title, style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(16.dp))
 
                 val shownIds = remember { mutableStateMapOf<Int, Boolean>() }
@@ -125,7 +125,7 @@ fun ColumnScope.SavedNumbers(
                                     LottoBall(it, modifier = Modifier.size(40.dp))
                                 }
                                 OutlinedButton(
-                                    onClick = { recommendViewModel.deleteCurrent(lottoSet.id) }
+                                    onClick = { onDeleteClick(lottoSet.id) }
                                 ) {
                                     Text("삭제", style = MaterialTheme.typography.labelMedium)
                                 }

@@ -15,8 +15,11 @@ interface MyLottoNumbersDao {
     suspend fun getAll(): List<MyLottoNumbersEntity>
 
     @Query("SELECT * FROM my_lotto_numbers WHERE date > :latestDate ORDER BY date")
-    suspend fun getLatest(latestDate: String): List<MyLottoNumbersEntity>
+    suspend fun getBeforeDraw(latestDate: String): List<MyLottoNumbersEntity>
 
     @Query("DELETE FROM my_lotto_numbers WHERE id = :id")
     suspend fun deleteById(id: Int)
+
+    @Query("UPDATE my_lotto_numbers SET rank = :rank WHERE id = :id")
+    suspend fun updateRank(id: Int, rank: Int?)
 }

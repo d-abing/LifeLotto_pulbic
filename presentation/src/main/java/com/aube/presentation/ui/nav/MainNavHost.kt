@@ -49,6 +49,9 @@ fun MainNavHost(
         composable(Screen.Home.route) {
             HomeScreen(
                 modifier = modifier,
+                onQRCodeClick = {
+                    navController.navigate(Screen.Notification.route)
+                },
                 onRegisterClick = {
                     navController.navigate(Screen.Register.route)
                 },

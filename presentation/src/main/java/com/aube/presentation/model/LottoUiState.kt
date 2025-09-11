@@ -11,6 +11,7 @@ data class LottoUiState(
     val bonus: Int = 0,
     val firstPrize: String = "",
     val firstCount: Int = 0,
+    val isLoading: Boolean = true
 )
 
 

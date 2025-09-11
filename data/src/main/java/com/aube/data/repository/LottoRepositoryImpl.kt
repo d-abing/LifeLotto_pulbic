@@ -8,10 +8,10 @@ import com.aube.data.retrofit.LottoApiService
 import com.aube.domain.model.LottoDraw
 import com.aube.domain.model.LottoResult
 import com.aube.domain.repository.LottoRepository
+import com.aube.domain.util.estimateLatestRound
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
 class LottoRepositoryImpl @Inject constructor(
@@ -46,11 +46,4 @@ class LottoRepositoryImpl @Inject constructor(
     override suspend fun getLatestRemoteRound(): Int {
         return estimateLatestRound()
     }
-}
-
-private fun estimateLatestRound(): Int {
-    val firstDrawDate = LocalDate.of(2002, 12, 7)
-    val today = LocalDate.now()
-    val weeks = ChronoUnit.WEEKS.between(firstDrawDate, today)
-    return weeks.toInt() + 1
 }

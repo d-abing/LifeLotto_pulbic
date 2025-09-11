@@ -1,5 +1,6 @@
 package com.aube.presentation.ui.component.home
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
@@ -31,9 +32,10 @@ fun RealtimeDdayText() {
     }
 
     val dDayText = formatDday(currentDuration)
-    Text("🕒 다음 추첨까지 $dDayText", style = MaterialTheme.typography.bodyMedium)
 
-    Spacer(Modifier.height(4.dp))
-
-    Text("당첨 결과는 바로 반영되지 않을 수 있습니다.", style = MaterialTheme.typography.bodySmall)
+    Column {
+        Text("🕒 다음 추첨까지 $dDayText", style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.height(4.dp))
+        Text("당첨 결과는 바로 반영되지 않을 수 있습니다.", style = MaterialTheme.typography.bodySmall)
+    }
 }

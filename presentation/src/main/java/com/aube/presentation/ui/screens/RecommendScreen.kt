@@ -46,6 +46,9 @@ fun RecommendScreen(
     val saved by recommendViewModel.savedNumbers.collectAsState()
     val rangeFilter by statisticsViewModel.filterFlow.collectAsState()
     val statisticsUi by statisticsViewModel.ui.collectAsState()
+    val useRandomForRecommend = statisticsUi.useRandomForRecommend
+    val stats = statisticsUi.stats
+
 
     val statisticsMessage by remember(rangeFilter, statisticsUi.useRandomForRecommend) {
         derivedStateOf {
@@ -56,9 +59,20 @@ fun RecommendScreen(
 
     LaunchedEffect(numbers) {
         if (numbers != null) {
-            recommendViewModel.refreshToday(numbers)
+            recommendViewModel.refreshToday(
+                luckyNumbers = numbers
+            )
         }
     }
+
+    LaunchedEffect(useRandomForRecommend, statisticsUi) {
+        if (!useRandomForRecommend && stats != null && numbers == null) {
+            recommendViewModel.refreshToday(
+                stats = stats
+            )
+        }
+    }
+
 
     Column(
         modifier = modifier
@@ -76,7 +90,11 @@ fun RecommendScreen(
             state.recommended.forEach { LottoBall(it, modifier = Modifier.size(50.dp), style = MaterialTheme.typography.titleMedium) }
         }
 
-        Button(onClick = recommendViewModel::refreshToday) {
+        Button(
+            onClick = {
+                recommendViewModel.refreshToday(stats = stats)
+            }
+        ) {
             Text(
                 text = "다시 추천받기",
                 style = MaterialTheme.typography.bodyLarge
@@ -133,10 +151,12 @@ fun RecommendScreen(
         Spacer(Modifier.height(24.dp))
 
         SavedNumbers(
+            title = "📦 저장된 추천 번호",
             saved = saved,
             modifier = Modifier.weight(1f),
-            recommendViewModel = recommendViewModel
-        )
+        ) { id ->
+            recommendViewModel.deleteCurrent(id)
+        }
     }
 }
 

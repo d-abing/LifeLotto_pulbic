@@ -8,6 +8,7 @@ import com.aube.domain.usecase.GetRecommendedNumbersUseCase
 import com.aube.domain.usecase.SaveRecommendedNumbersUseCase
 import com.aube.presentation.model.LottoRecommendation
 import com.aube.presentation.model.RecommendUiState
+import com.aube.presentation.model.StatsResult
 import com.aube.presentation.util.fortune.RecommendationPrefs
 import com.aube.presentation.util.generateLottoNumbers
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -56,8 +58,20 @@ class RecommendViewModel @Inject constructor(
         }
     }
 
-    fun refreshToday(numbers: List<Int>? = null) {
-        viewModelScope.launch { generateAndSave(numbers) }
+    fun refreshToday(luckyNumbers: List<Int>? = null, stats: StatsResult? = null) {
+        viewModelScope.launch {
+            var numbers: List<Int>? = luckyNumbers
+            if (stats != null) {
+                val topCnt = prefs.useTopCount.first()
+                val lowCnt = prefs.useLowCount.first()
+                val top8 = stats.top8.shuffled().take(topCnt).map { it.first }
+                val low8 = stats.low8.shuffled().take(lowCnt).map { it.first }
+
+                numbers = top8 + low8
+            }
+
+            generateAndSave(numbers)
+        }
     }
 
     private suspend fun generateAndSave(numbers: List<Int>? = null) {

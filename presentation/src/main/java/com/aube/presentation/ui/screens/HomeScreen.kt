@@ -31,6 +31,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     fortuneViewModel: FortuneViewModel = hiltViewModel(),
     lottoViewModel: LottoViewModel,
+    onQRCodeClick: () -> Unit,
     onRegisterClick: () -> Unit,
     onRecommendWithLuckyNumbers: (List<Int>) -> Unit
 ) {
@@ -64,6 +65,7 @@ fun HomeScreen(
         )
 
         LottoResultCard(
+            isLoading = lottoUiState.isLoading,
             latestRound = latestRound,
             round = lottoUiState.round,
             date = lottoUiState.date,
@@ -82,8 +84,8 @@ fun HomeScreen(
         Spacer(Modifier.height(12.dp))
 
         MyNumberCard(
-            myNumbers = myLottoNumbersUiState.myNumbers,
-            result = myLottoNumbersUiState.matchResult,
+            uiState = myLottoNumbersUiState,
+            onQRCodeClick = onQRCodeClick,
             onRegisterClick = onRegisterClick,
         )
 

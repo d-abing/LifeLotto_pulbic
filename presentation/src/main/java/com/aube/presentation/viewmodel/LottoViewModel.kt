@@ -2,10 +2,15 @@ package com.aube.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aube.domain.model.MyLottoSet
 import com.aube.domain.usecase.DeleteMyLottoNumbersUseCase
 import com.aube.domain.usecase.GetLottoResultUseCase
+import com.aube.domain.usecase.GetMyLottoNumbersHistoryUseCase
 import com.aube.domain.usecase.GetMyLottoNumbersUseCase
 import com.aube.domain.usecase.SaveMyLottoNumbersUseCase
+import com.aube.domain.util.estimateLatestDateTime
+import com.aube.domain.util.estimateLatestRound
+import com.aube.domain.util.rankOf
 import com.aube.presentation.model.LottoUiState
 import com.aube.presentation.model.MatchResult
 import com.aube.presentation.model.MyLottoNumbersUiState
@@ -14,10 +19,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,7 +27,8 @@ class LottoViewModel @Inject constructor(
     private val getMyLottoNumbersUseCase: GetMyLottoNumbersUseCase,
     private val saveMyLottoNumbersUseCase: SaveMyLottoNumbersUseCase,
     private val deleteMyLottoNumbersUseCase: DeleteMyLottoNumbersUseCase,
-    private val getLottoResultUseCase: GetLottoResultUseCase
+    private val getLottoResultUseCase: GetLottoResultUseCase,
+    private val getMyLottoNumbersHistoryUseCase: GetMyLottoNumbersHistoryUseCase,
 ) : ViewModel() {
 
     private val _lottoUiState = MutableStateFlow<LottoUiState>(LottoUiState())
@@ -43,24 +46,42 @@ class LottoViewModel @Inject constructor(
     private val _newCombination = MutableStateFlow<List<Int>>(emptyList())
     val newCombination: StateFlow<List<Int>> = _newCombination
 
+    private var latestNumbers: Pair<List<Int>, Int> = Pair(emptyList(), 0)
+
+    private var matchHistory: List<Int> = emptyList()
+
+
     fun loadHome() {
         loadLotto()
         loadMyLottoNumbers()
+
+        viewModelScope.launch {
+            val latestResult = getLottoResultUseCase(latestRound.value)
+            latestNumbers = Pair(latestResult.winningNumbers, latestResult.bonus)
+
+            val myNumbersHistory  = getMyLottoNumbersHistoryUseCase()
+            matchHistory = myNumbersHistory.mapNotNull { it.rank }
+        }
     }
 
     fun loadLotto(round: Int = latestRound.value) {
         viewModelScope.launch {
+            _lottoUiState.value = _lottoUiState.value.copy(isLoading = true)
             val result = getLottoResultUseCase(round)
-            _lottoUiState.value = result.toUiState()
+            _lottoUiState.value = result.toUiState().copy(isLoading = false)
         }
     }
 
     private fun loadMyLottoNumbers() {
         viewModelScope.launch {
-            val myNumbers = getMyLottoNumbersUseCase(latestDate.value)
+            val beforeDraw = getMyLottoNumbersUseCase(latestDate.value)
+            val myNumbers = getMyLottoNumbersUseCase(latestDate.value.minusWeeks(1)) - beforeDraw.toSet()
+            val matchResult = calculateMatchResult(latestNumbers, myNumbers)
             _myLottoNumbersUiState.value = MyLottoNumbersUiState(
-                myNumbers = myNumbers?.map { it.numbers },
-                matchResult = MatchResult.Lose
+                beforeDraw = beforeDraw,
+                myNumbers = myNumbers - beforeDraw.toSet(),
+                matchHistory = matchHistory,
+                matchResult = matchResult,
             )
         }
     }
@@ -76,6 +97,7 @@ class LottoViewModel @Inject constructor(
         viewModelScope.launch {
             deleteMyLottoNumbersUseCase(idx)
         }
+        loadMyLottoNumbers()
     }
 
     fun deleteNumberFromCombination(number: Int) {
@@ -89,18 +111,23 @@ class LottoViewModel @Inject constructor(
     }
 }
 
+private fun calculateMatchResult(latestNumbers: Pair<List<Int>, Int>, myNumbers: List<MyLottoSet>): MatchResult? {
+    val (winningNumbers, bonus) = latestNumbers
+    val matchResult =
+        if (myNumbers.isEmpty()) null
+        else myNumbers.let { allNumbers ->
+        val results = allNumbers.map { lottoSet ->
+            val numbers = lottoSet.numbers
+            rankOf(numbers, winningNumbers, bonus)
+        }.filterNotNull()
 
-private fun estimateLatestRound(): Int {
-    val firstDrawDate = LocalDate.of(2002, 12, 7)
-    val today = LocalDate.now()
-    val weeks = ChronoUnit.WEEKS.between(firstDrawDate, today)
-    return weeks.toInt() + 1
-}
+        if (results.isEmpty()) {
+            MatchResult.Lose
+        } else {
+            val bestRank = results.min()
+            MatchResult.Win(rank = bestRank)
+        }
+    }
 
-fun estimateLatestDateTime(): LocalDateTime {
-    val baseDate = LocalDate.of(2002, 12, 7) // 1회차 추첨일
-    val drawTime = LocalTime.of(20, 45)      // 추첨 시간
-    val latestRound = estimateLatestRound()  // 이미 구현된 함수
-    val latestDate = baseDate.plusWeeks((latestRound - 1).toLong())
-    return LocalDateTime.of(latestDate, drawTime)
+    return matchResult
 }

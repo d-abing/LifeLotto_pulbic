@@ -2,6 +2,7 @@ package com.aube.presentation.ui.screens
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -157,6 +158,7 @@ private fun statisticsSetting(
                         )
                     }
                 },
+                border = if(!ui.useRandomForRecommend) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else BorderStroke(0.dp, MaterialTheme.colorScheme.primary),
                 colors = FilterChipDefaults.filterChipColors().copy(
                     selectedContainerColor = MaterialTheme.colorScheme.surface,
                     selectedLabelColor = MaterialTheme.colorScheme.onSurface,

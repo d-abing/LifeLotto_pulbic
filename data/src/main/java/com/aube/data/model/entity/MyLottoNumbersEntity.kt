@@ -2,20 +2,24 @@ package com.aube.data.model.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.aube.domain.model.LottoSet
+import com.aube.domain.model.MyLottoSet
 import java.time.LocalDateTime
 
 @Entity(tableName = "my_lotto_numbers")
 data class MyLottoNumbersEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val numbers: List<Int>,
-    val date: LocalDateTime
+    val round: Int,
+    val date: LocalDateTime,
+    val rank: Int? = null
 )
 
-fun MyLottoNumbersEntity.toDomain(): LottoSet {
-    return LottoSet(
+fun MyLottoNumbersEntity.toDomain(): MyLottoSet {
+    return MyLottoSet(
         id = id,
         numbers = numbers,
-        date = date
+        round = round,
+        date = date,
+        rank = rank
     )
 }
