@@ -46,7 +46,6 @@ fun RecommendScreen(
     val saved by recommendViewModel.savedNumbers.collectAsState()
     val rangeFilter by statisticsViewModel.filterFlow.collectAsState()
     val statisticsUi by statisticsViewModel.ui.collectAsState()
-    val useRandomForRecommend = statisticsUi.useRandomForRecommend
     val stats = statisticsUi.stats
 
 
@@ -64,15 +63,6 @@ fun RecommendScreen(
             )
         }
     }
-
-    LaunchedEffect(useRandomForRecommend, statisticsUi) {
-        if (!useRandomForRecommend && stats != null && numbers == null) {
-            recommendViewModel.refreshToday(
-                stats = stats
-            )
-        }
-    }
-
 
     Column(
         modifier = modifier

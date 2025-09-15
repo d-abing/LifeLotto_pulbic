@@ -47,21 +47,14 @@ class LottoViewModel @Inject constructor(
     val newCombination: StateFlow<List<Int>> = _newCombination
 
     private var latestNumbers: Pair<List<Int>, Int> = Pair(emptyList(), 0)
-
     private var matchHistory: List<Int> = emptyList()
 
 
     fun loadHome() {
         loadLotto()
         loadMyLottoNumbers()
-
-        viewModelScope.launch {
-            val latestResult = getLottoResultUseCase(latestRound.value)
-            latestNumbers = Pair(latestResult.winningNumbers, latestResult.bonus)
-
-            val myNumbersHistory  = getMyLottoNumbersHistoryUseCase()
-            matchHistory = myNumbersHistory.mapNotNull { it.rank }
-        }
+        getLatestNumbers()
+        getMyLottoHistory()
     }
 
     fun loadLotto(round: Int = latestRound.value) {
@@ -74,8 +67,8 @@ class LottoViewModel @Inject constructor(
 
     private fun loadMyLottoNumbers() {
         viewModelScope.launch {
-            val beforeDraw = getMyLottoNumbersUseCase(latestDate.value)
-            val myNumbers = getMyLottoNumbersUseCase(latestDate.value.minusWeeks(1)) - beforeDraw.toSet()
+            val beforeDraw = getMyLottoNumbersUseCase(latestRound.value + 1)
+            val myNumbers = getMyLottoNumbersUseCase(latestRound.value) - beforeDraw.toSet()
             val matchResult = calculateMatchResult(latestNumbers, myNumbers)
             _myLottoNumbersUiState.value = MyLottoNumbersUiState(
                 beforeDraw = beforeDraw,
@@ -83,6 +76,20 @@ class LottoViewModel @Inject constructor(
                 matchHistory = matchHistory,
                 matchResult = matchResult,
             )
+        }
+    }
+
+    fun getLatestNumbers() {
+        viewModelScope.launch {
+            val latestResult = getLottoResultUseCase(latestRound.value)
+            latestNumbers = Pair(latestResult.winningNumbers, latestResult.bonus)
+        }
+    }
+
+    fun getMyLottoHistory() {
+        viewModelScope.launch {
+            val myNumbersHistory  = getMyLottoNumbersHistoryUseCase()
+            matchHistory = myNumbersHistory.mapNotNull { it.rank }
         }
     }
 
@@ -108,6 +115,21 @@ class LottoViewModel @Inject constructor(
         if (_newCombination.value.size >= 6 || _newCombination.value.contains(number)) return
         _newCombination.value += number
         _newCombination.value = _newCombination.value.sorted()
+    }
+
+    fun onQrParsed(round: Int, sets: List<List<Int>>) {
+        viewModelScope.launch {
+            sets.forEach { numbers ->
+                // 등수 계산은 round별 결과 받아서 numbers마다
+                val r = getLottoResultUseCase(round)
+                val rank = rankOf(numbers, r.winningNumbers, r.bonus)
+                saveMyLottoNumbersUseCase(
+                    numbers = numbers,
+                    round = round,
+                    rank = rank
+                )
+            }
+        }
     }
 }
 

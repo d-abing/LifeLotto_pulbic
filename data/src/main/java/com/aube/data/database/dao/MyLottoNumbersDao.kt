@@ -14,8 +14,8 @@ interface MyLottoNumbersDao {
     @Query("SELECT * FROM my_lotto_numbers ORDER BY date DESC")
     suspend fun getAll(): List<MyLottoNumbersEntity>
 
-    @Query("SELECT * FROM my_lotto_numbers WHERE date > :latestDate ORDER BY date")
-    suspend fun getBeforeDraw(latestDate: String): List<MyLottoNumbersEntity>
+    @Query("SELECT * FROM my_lotto_numbers WHERE round = :round ORDER BY date")
+    suspend fun getBeforeDraw(round: String): List<MyLottoNumbersEntity>
 
     @Query("DELETE FROM my_lotto_numbers WHERE id = :id")
     suspend fun deleteById(id: Int)

@@ -15,6 +15,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -23,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.aube.presentation.ui.component.home.LottoResultCard
 import com.aube.presentation.ui.component.home.MyNumberCard
 import com.aube.presentation.ui.component.home.TodayFortuneCard
+import com.aube.presentation.util.qrcode.handleDhlotteryQr
 import com.aube.presentation.viewmodel.FortuneViewModel
 import com.aube.presentation.viewmodel.LottoViewModel
 
@@ -31,7 +35,6 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     fortuneViewModel: FortuneViewModel = hiltViewModel(),
     lottoViewModel: LottoViewModel,
-    onQRCodeClick: () -> Unit,
     onRegisterClick: () -> Unit,
     onRecommendWithLuckyNumbers: (List<Int>) -> Unit
 ) {
@@ -40,6 +43,8 @@ fun HomeScreen(
     val lottoUiState by lottoViewModel.lottoUiState.collectAsState()
     val myLottoNumbersUiState by lottoViewModel.myLottoNumbersUiState.collectAsState()
     val fortuneUiState by fortuneViewModel.state.collectAsState()
+    var showScanner by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(Unit) {
         lottoViewModel.loadHome()
@@ -53,14 +58,18 @@ fun HomeScreen(
         Text(
             text = "인생 대박 로또 복권",
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 12.dp),
             textAlign = TextAlign.Center
         )
 
         Text(
             text = "오늘의 번호가 내일의 인생을 바꾼다.",
             style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
             textAlign = TextAlign.Center
         )
 
@@ -85,7 +94,9 @@ fun HomeScreen(
 
         MyNumberCard(
             uiState = myLottoNumbersUiState,
-            onQRCodeClick = onQRCodeClick,
+            onQRCodeClick = {
+                showScanner = true
+            },
             onRegisterClick = onRegisterClick,
         )
 
@@ -96,4 +107,22 @@ fun HomeScreen(
             onRecommendWithLuckyNumbers = { luckyNumbers -> onRecommendWithLuckyNumbers(luckyNumbers) }
         )
     }
+
+
+    if (showScanner) {
+        QrScreen(
+            onQrDetected = { url ->
+                handleDhlotteryQr(
+                    context = context,
+                    url = url,
+                    onParsed = { round, numbers ->
+                        lottoViewModel.onQrParsed(round, numbers)
+                    }
+                )
+                showScanner = false
+            },
+            onClose = { showScanner = false }
+        )
+    }
 }
+

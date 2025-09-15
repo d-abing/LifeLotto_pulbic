@@ -1,14 +1,19 @@
 package com.aube.data.model.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.aube.domain.model.MyLottoSet
 import java.time.LocalDateTime
 
-@Entity(tableName = "my_lotto_numbers")
+@Entity(
+    tableName = "my_lotto_numbers",
+    indices = [Index(value = ["numbers"], unique = true)]
+)
 data class MyLottoNumbersEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val numbers: List<Int>,
+    @ColumnInfo(name = "numbers") val numbers: List<Int>,
     val round: Int,
     val date: LocalDateTime,
     val rank: Int? = null

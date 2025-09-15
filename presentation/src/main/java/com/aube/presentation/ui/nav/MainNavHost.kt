@@ -49,9 +49,6 @@ fun MainNavHost(
         composable(Screen.Home.route) {
             HomeScreen(
                 modifier = modifier,
-                onQRCodeClick = {
-                    navController.navigate(Screen.Notification.route)
-                },
                 onRegisterClick = {
                     navController.navigate(Screen.Register.route)
                 },
@@ -71,6 +68,11 @@ fun MainNavHost(
                 lottoViewModel = lottoViewModel
             )
         }
-        composable(Screen.Notification.route) { NotificationScreen() }
+
+        composable(Screen.Notification.route) {
+            NotificationScreen(
+                modifier = modifier,
+            )
+        }
     }
 }

@@ -17,11 +17,12 @@ class MyLottoNumbersRepositoryImpl @Inject constructor(
     private val dao: MyLottoNumbersDao,
 ) : MyLottoNumbersRepository {
 
-    override suspend fun saveMyNumbers(numbers: List<Int>) {
+    override suspend fun saveMyNumbers(numbers: List<Int>, round: Int?, rank: Int?) {
         val entity = MyLottoNumbersEntity(
             numbers = numbers,
-            round = estimateLatestRound(),
-            date = LocalDateTime.now()
+            round = round ?: (estimateLatestRound() + 1),
+            date = LocalDateTime.now(),
+            rank = rank
         )
         dao.insert(entity)
     }
@@ -31,8 +32,8 @@ class MyLottoNumbersRepositoryImpl @Inject constructor(
         return dao.getAll().map { it.toDomain() }
     }
 
-    override suspend fun getBeforeDraw(latestDate: LocalDateTime): List<MyLottoSet> {
-        return dao.getBeforeDraw(latestDate.toString()).map { it.toDomain() }
+    override suspend fun getBeforeDraw(round: Int): List<MyLottoSet> {
+        return dao.getBeforeDraw(round.toString()).map { it.toDomain() }
     }
 
     override suspend fun deleteMyNumbers(id: Int) {
@@ -46,8 +47,10 @@ class MyLottoNumbersRepositoryImpl @Inject constructor(
         val cache = mutableMapOf<Int, LottoResult>()
 
         for (e in entities) {
+            if (e.rank != null || e.round > estimateLatestRound()) continue
             val result = cache.getOrPut(e.round) {
                 val r = api.getLottoResult(e.round)
+                if (r.round == 0) return
                 LottoResult(
                     round = e.round,
                     date = r.date,
