@@ -5,8 +5,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class SyncDrawHistoryUseCase(
+class SyncDrawHistoryUseCase @Inject constructor(
     private val repo: LottoRepository,
     private val io: CoroutineDispatcher = Dispatchers.IO
 ) {

@@ -2,10 +2,10 @@ package com.aube.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aube.domain.common.SeedKeyProvider
 import com.aube.presentation.model.FortuneUiState
 import com.aube.presentation.util.fortune.FortuneGenerator
 import com.aube.presentation.util.fortune.FortunePrefs
-import com.aube.presentation.util.fortune.SeedKeyProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

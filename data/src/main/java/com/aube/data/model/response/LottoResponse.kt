@@ -1,8 +1,10 @@
 package com.aube.data.model.response
 
+import androidx.annotation.Keep
 import com.aube.domain.model.LottoResult
 import com.google.gson.annotations.SerializedName
 
+@Keep
 data class LottoResponse(
     @SerializedName("drwNo") val round: Int,
     @SerializedName("drwNoDate") val date: String,

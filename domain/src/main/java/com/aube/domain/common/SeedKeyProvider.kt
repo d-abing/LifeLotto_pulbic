@@ -1,2 +1,3 @@
-package com.aube.presentation.util.fortune
+package com.aube.domain.common
+
 fun interface SeedKeyProvider { fun get(): String }

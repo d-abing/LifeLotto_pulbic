@@ -1,7 +1,7 @@
 package com.aube.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.aube.domain.util.NotificationScheduler
+import com.aube.domain.service.NotificationScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 

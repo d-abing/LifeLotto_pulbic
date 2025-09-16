@@ -1,9 +1,8 @@
 package com.aube.data.database.dao
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import com.aube.data.model.entity.LottoDrawEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -15,6 +14,6 @@ interface LottoDrawDao {
     @Query("SELECT MAX(round) FROM lotto_draw")
     suspend fun getLatestRound(): Int?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun upsert(entity: LottoDrawEntity)
 }

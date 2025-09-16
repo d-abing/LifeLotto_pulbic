@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aube.presentation.ui.component.home.LottoResultCard
 import com.aube.presentation.ui.component.home.MyNumberCard
 import com.aube.presentation.ui.component.home.TodayFortuneCard
@@ -92,8 +93,12 @@ fun HomeScreen(
 
         Spacer(Modifier.height(12.dp))
 
+        val blurred by lottoViewModel.isBlurred.collectAsStateWithLifecycle()
+
         MyNumberCard(
             uiState = myLottoNumbersUiState,
+            isBlurred = blurred,
+            onVisibilityClick = { lottoViewModel.toggleBlur() },
             onQRCodeClick = {
                 showScanner = true
             },

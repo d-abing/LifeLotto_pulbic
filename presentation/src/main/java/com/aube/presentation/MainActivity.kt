@@ -4,9 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -22,10 +24,12 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.aube.presentation.ui.component.AdaptiveBanner
 import com.aube.presentation.ui.nav.LifeLottoBottomBar
 import com.aube.presentation.ui.nav.MainNavHost
 import com.aube.presentation.ui.nav.Screen
 import com.aube.presentation.ui.theme.LifeLottoTheme
+import com.aube.presentation.util.AdIds
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -58,14 +62,21 @@ fun LifeLottoApp() {
     Scaffold(
         modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing),
         bottomBar = {
-            LifeLottoBottomBar(
-                navController = navController,
-                items = listOf(
-                    Screen.Recommend,
-                    Screen.Home,
-                    Screen.Notification
+            Column {
+                AdaptiveBanner(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    adUnitId = AdIds.banner()
                 )
-            )
+                LifeLottoBottomBar(
+                    navController = navController,
+                    items = listOf(
+                        Screen.Recommend,
+                        Screen.Home,
+                        Screen.Notification
+                    )
+                )
+            }
         }
     ) { paddingValues ->
         MainNavHost(

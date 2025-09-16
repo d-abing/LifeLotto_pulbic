@@ -1,8 +1,9 @@
 package com.aube.domain.usecase
 
 import com.aube.domain.repository.RecommendRepository
+import javax.inject.Inject
 
-class DeleteRecommendedNumbersUseCase(
+class DeleteRecommendedNumbersUseCase @Inject constructor(
     private val repository: RecommendRepository
 ) {
     suspend operator fun invoke(id: Int) {

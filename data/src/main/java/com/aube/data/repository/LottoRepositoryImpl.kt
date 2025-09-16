@@ -8,10 +8,12 @@ import com.aube.data.retrofit.LottoApiService
 import com.aube.domain.model.LottoDraw
 import com.aube.domain.model.LottoResult
 import com.aube.domain.repository.LottoRepository
+import com.aube.domain.util.estimateLatestDateTime
 import com.aube.domain.util.estimateLatestRound
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 class LottoRepositoryImpl @Inject constructor(
@@ -31,17 +33,24 @@ class LottoRepositoryImpl @Inject constructor(
     override suspend fun upsertAll(draws: List<LottoDraw>) =
         draws.forEach { upsert(it) }
 
-    override suspend fun fetchDraw(round: Int): LottoDraw? =
-        runCatching {
-            api.getLottoResult(round)
-        }.getOrNull()
-            ?.let {
-                LottoDraw(
-                    round = it.round,
-                    date = LocalDate.parse(it.date).atStartOfDay(),
-                    numbers = listOf(it.no1, it.no2, it.no3, it.no4, it.no5, it.no6),
-                )
-            }
+    override suspend fun fetchDraw(round: Int): LottoDraw? {
+        val dto = runCatching { api.getLottoResult(round) }.getOrNull() ?: return null
+
+        val nums = listOfNotNull(dto.no1, dto.no2, dto.no3, dto.no4, dto.no5, dto.no6)
+        if (dto.round != round || nums.size != 6) return null
+
+        val parsedDateTime = runCatching {
+            LocalDate.parse(dto.date, DateTimeFormatter.ISO_LOCAL_DATE).atStartOfDay()
+        }.getOrElse {
+            estimateLatestDateTime()
+        }
+
+        return LottoDraw(
+            round = round,
+            numbers = nums,
+            date = parsedDateTime
+        )
+    }
 
     override suspend fun getLatestRemoteRound(): Int {
         return estimateLatestRound()

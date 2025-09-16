@@ -1,4 +1,4 @@
-package com.aube.lifelotto.util
+package com.aube.lifelotto.notification
 
 import android.content.Context
 import androidx.work.BackoffPolicy
@@ -8,19 +8,22 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.aube.domain.util.NotificationScheduler
+import com.aube.domain.service.NotificationScheduler
 import com.aube.domain.util.nextDrawInstant
 import com.aube.domain.util.roundForDrawInstant
+import com.aube.lifelotto.notification.LottoResultWorkContract.KEY_ROUND
+import com.aube.lifelotto.notification.LottoResultWorkContract.KEY_SCHEDULED_AT
+import com.aube.lifelotto.notification.LottoResultWorkContract.WORK_UNIQUE
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.Duration
 import java.time.Instant
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-const val WORK_UNIQUE = "lotto_result_worker"
-private const val KEY_ROUND = "round"
-private const val KEY_SCHEDULED_AT = "scheduled_at"
+
 
 class NotificationSchedulerImpl @Inject constructor(
+    private val workManager: WorkManager,
     @ApplicationContext private val context: Context
 ) : NotificationScheduler {
 
@@ -40,8 +43,8 @@ class NotificationSchedulerImpl @Inject constructor(
 
         val req = OneTimeWorkRequestBuilder<LottoResultWorker>()
             .setInputData(data)
-            .setInitialDelay(delayMs, java.util.concurrent.TimeUnit.MILLISECONDS)
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, java.util.concurrent.TimeUnit.MINUTES)
+            .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 5, TimeUnit.MINUTES)
             .setConstraints(
                 Constraints.Builder()
                     .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -49,11 +52,10 @@ class NotificationSchedulerImpl @Inject constructor(
             )
             .build()
 
-        WorkManager.getInstance(context)
-            .enqueueUniqueWork(WORK_UNIQUE, ExistingWorkPolicy.REPLACE, req)
+        workManager.enqueueUniqueWork(WORK_UNIQUE, ExistingWorkPolicy.REPLACE, req)
     }
 
     override fun disable() {
-        WorkManager.getInstance(context).cancelUniqueWork(WORK_UNIQUE)
+        workManager.cancelUniqueWork(WORK_UNIQUE)
     }
 }

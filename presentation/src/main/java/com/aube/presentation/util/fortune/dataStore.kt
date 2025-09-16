@@ -3,6 +3,7 @@ package com.aube.presentation.util.fortune
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -12,11 +13,14 @@ import com.aube.presentation.model.LottoRecommendation
 import com.aube.presentation.model.RangeFilter
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private val Context.dataStore by preferencesDataStore("fortune_prefs")
+val Context.fortuneDataStore by preferencesDataStore(name = "fortune_prefs")
+val Context.recommendDataStore by preferencesDataStore(name = "recommend_prefs")
+val Context.lottoDataStore by preferencesDataStore(name = "lotto_prefs")
 
 object FortunePrefsKeys {
     val LAST_DATE = longPreferencesKey("last_date")
@@ -30,8 +34,10 @@ object FortunePrefsKeys {
 class FortunePrefs @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
+    private val ds = context.fortuneDataStore
+
     suspend fun save(f: Fortune) {
-        context.dataStore.edit { p ->
+        ds.edit { p ->
             p[FortunePrefsKeys.LAST_DATE] = f.dateEpochDay
             p[FortunePrefsKeys.LAST_SCORE] = f.score
             p[FortunePrefsKeys.LAST_SUMMARY] = f.summary
@@ -39,90 +45,86 @@ class FortunePrefs @Inject constructor(
             p[FortunePrefsKeys.LAST_TIME] = f.luckyTime
         }
     }
-    val flow = context.dataStore.data.map { p ->
-        val d = p[FortunePrefsKeys.LAST_DATE] ?: return@map null
-        Fortune(
-            dateEpochDay = d,
-            score = p[FortunePrefsKeys.LAST_SCORE] ?: 0,
-            summary = p[FortunePrefsKeys.LAST_SUMMARY].orEmpty(),
-            luckyNumbers = p[FortunePrefsKeys.LAST_NUMBERS].orEmpty()
-                .split(",").filter { it.isNotBlank() }.map { it.toInt() },
-            luckyTime = p[FortunePrefsKeys.LAST_TIME].orEmpty(),
-        )
-    }
+
+    val flow = ds.data
+        .catch { e -> if (e is java.io.IOException) emit(androidx.datastore.preferences.core.emptyPreferences()) else throw e }
+        .map { p ->
+            val d = p[FortunePrefsKeys.LAST_DATE] ?: return@map null
+            Fortune(
+                dateEpochDay = d,
+                score = p[FortunePrefsKeys.LAST_SCORE] ?: 0,
+                summary = p[FortunePrefsKeys.LAST_SUMMARY].orEmpty(),
+                luckyNumbers = p[FortunePrefsKeys.LAST_NUMBERS].orEmpty()
+                    .split(",").filter { it.isNotBlank() }.map { it.toInt() },
+                luckyTime = p[FortunePrefsKeys.LAST_TIME].orEmpty(),
+            )
+        }
 }
 
 @Singleton
 class RecommendationPrefs @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    private val Context.dataStore by preferencesDataStore("recommend_prefs")
+    private val ds = context.recommendDataStore
 
-    // 기존 키
     private val keyDate = longPreferencesKey("last_recommend_date")
     private val keyNumbers = stringPreferencesKey("last_recommend_numbers")
     private val keyRangeFilter = stringPreferencesKey("range_filter")
-
-    // 신규 키
     private val keyUseRandom = booleanPreferencesKey("use_random_for_recommend")
     private val keyTopCount = intPreferencesKey("use_top_count")
     private val keyLowCount = intPreferencesKey("use_low_count")
 
-    // 오늘 추천 번호
-    val today: Flow<LottoRecommendation?> = context.dataStore.data.map { prefs ->
-        val savedDate = prefs[keyDate] ?: return@map null
-        val numbers = prefs[keyNumbers]?.split(",")?.mapNotNull { it.toIntOrNull() } ?: return@map null
-        LottoRecommendation(savedDate, numbers)
-    }
+    val today: Flow<LottoRecommendation?> = ds.data
+        .catch { e -> if (e is java.io.IOException) emit(emptyPreferences()) else throw e }
+        .map { prefs ->
+            val savedDate = prefs[keyDate] ?: return@map null
+            val numbers = prefs[keyNumbers]?.split(",")?.mapNotNull { it.toIntOrNull() } ?: return@map null
+            LottoRecommendation(savedDate, numbers)
+        }
 
-    // 통계 범위 필터 (LAST10 / LAST30 / …)
-    val rangeFilter: Flow<String> = context.dataStore.data.map { prefs ->
-        prefs[keyRangeFilter] ?: RangeFilter.LAST10.name
-    }
+    val rangeFilter: Flow<String> = ds.data
+        .catch { e -> if (e is java.io.IOException) emit(emptyPreferences()) else throw e }
+        .map { it[keyRangeFilter] ?: RangeFilter.LAST10.name }
 
-    // 추천 모드 (통계 미사용 = 랜덤)
-    val useRandomForRecommend: Flow<Boolean> = context.dataStore.data.map { prefs ->
-        prefs[keyUseRandom] ?: false
-    }
+    val useRandomForRecommend: Flow<Boolean> = ds.data
+        .catch { e -> if (e is java.io.IOException) emit(emptyPreferences()) else throw e }
+        .map { it[keyUseRandom] ?: false }
 
-    // 추천에 사용할 많이 나온 번호 개수 (0..8)
-    val useTopCount: Flow<Int> = context.dataStore.data.map { prefs ->
-        prefs[keyTopCount] ?: 3
-    }
+    val useTopCount: Flow<Int> = ds.data
+        .catch { e -> if (e is java.io.IOException) emit(emptyPreferences()) else throw e }
+        .map { it[keyTopCount] ?: 3 }
 
-    // 추천에 사용할 적게 나온 번호 개수 (0..8)
-    val useLowCount: Flow<Int> = context.dataStore.data.map { prefs ->
-        prefs[keyLowCount] ?: 3
-    }
+    val useLowCount: Flow<Int> = ds.data
+        .catch { e -> if (e is java.io.IOException) emit(emptyPreferences()) else throw e }
+        .map { it[keyLowCount] ?: 3 }
 
     suspend fun saveToday(rec: LottoRecommendation) {
-        context.dataStore.edit { prefs ->
+        ds.edit { prefs ->
             prefs[keyDate] = rec.dateEpochDay
             prefs[keyNumbers] = rec.numbers.joinToString(",")
         }
     }
 
-    suspend fun setRangeFilter(option: String) {
-        context.dataStore.edit { prefs ->
-            prefs[keyRangeFilter] = option
-        }
-    }
+    suspend fun setRangeFilter(option: String) = ds.edit { it[keyRangeFilter] = option }
+    suspend fun setUseRandomForRecommend(value: Boolean) = ds.edit { it[keyUseRandom] = value }
 
-    suspend fun setUseRandomForRecommend(value: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[keyUseRandom] = value
-        }
-    }
+    // 주석 0..8과 구현 0..6이 달라서 통일 권장 (6이 합리적)
+    suspend fun setUseTopCount(value: Int) = ds.edit { it[keyTopCount] = value.coerceIn(0, 6) }
+    suspend fun setUseLowCount(value: Int) = ds.edit { it[keyLowCount] = value.coerceIn(0, 6) }
+}
 
-    suspend fun setUseTopCount(value: Int) {
-        context.dataStore.edit { prefs ->
-            prefs[keyTopCount] = value.coerceIn(0, 6)
-        }
-    }
+@Singleton
+class LottoPrefs @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
+    private val ds = context.lottoDataStore
+    private val KEY_BLUR = booleanPreferencesKey("my_numbers_blur")
 
-    suspend fun setUseLowCount(value: Int) {
-        context.dataStore.edit { prefs ->
-            prefs[keyLowCount] = value.coerceIn(0, 6)
-        }
+    val blurFlow: Flow<Boolean> = ds.data
+        .catch { e -> if (e is java.io.IOException) emit(emptyPreferences()) else throw e }
+        .map { it[KEY_BLUR] ?: false }
+
+    suspend fun setBlurred(blur: Boolean) {
+        ds.edit { it[KEY_BLUR] = blur }
     }
 }

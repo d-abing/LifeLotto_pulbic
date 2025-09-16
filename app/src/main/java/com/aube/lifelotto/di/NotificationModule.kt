@@ -1,7 +1,7 @@
 package com.aube.lifelotto.di
 
-import com.aube.domain.util.NotificationScheduler
-import com.aube.lifelotto.util.NotificationSchedulerImpl
+import com.aube.domain.service.NotificationScheduler
+import com.aube.lifelotto.notification.NotificationSchedulerImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

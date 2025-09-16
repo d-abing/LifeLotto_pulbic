@@ -11,6 +11,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,7 +32,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -43,6 +46,7 @@ fun NotificationScreen(
     vm: NotificationSettingsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val prefs = remember(context) {
         context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     }
@@ -80,6 +84,8 @@ fun NotificationScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Spacer(modifier = Modifier.weight(1f))
+
         Text("🔔 추첨 결과 알림", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 36.dp))
 
 
@@ -122,6 +128,20 @@ fun NotificationScreen(
                 requestPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
             },
             onOpenSettings = { context.openAppSettings() }
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Text(
+            text = "개인정보 처리방침",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier
+                .padding(bottom = 8.dp)
+                .clickable {
+                    uriHandler.openUri("https://aubecompany.blogspot.com/2025/09/blog-post.html")
+                }
         )
     }
 }

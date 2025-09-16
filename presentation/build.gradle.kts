@@ -12,20 +12,32 @@ android {
 
     defaultConfig {
         minSdk = 28
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
+        debug {
+            buildConfigField(
+                "String",
+                "ADMOB_BANNER_ID",
+                "\"ca-app-pub-3940256099942544/6300978111\""
+            )
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField(
+                "String",
+                "ADMOB_BANNER_ID",
+                "\"${project.findProperty("ADMOB_BANNER_ID") ?: ""}\""
+            )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -37,6 +49,7 @@ android {
         jvmToolchain(17)
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
     composeOptions {
@@ -83,4 +96,6 @@ dependencies {
     implementation(libs.androidx.browser)
 
     implementation(libs.jsoup)
+
+    implementation(libs.play.services.ads)
 }

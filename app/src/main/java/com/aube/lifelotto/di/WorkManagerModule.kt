@@ -1,8 +1,7 @@
 package com.aube.lifelotto.di
 
 import android.content.Context
-import android.provider.Settings
-import com.aube.domain.common.SeedKeyProvider
+import androidx.work.WorkManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,9 +11,9 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object FortuneModule {
+object WorkManagerModule {
     @Provides
     @Singleton
-    fun provideSeedKey(@ApplicationContext ctx: Context): SeedKeyProvider =
-        SeedKeyProvider { Settings.Secure.getString(ctx.contentResolver, Settings.Secure.ANDROID_ID) ?: "" }
+    fun provideWorkManager(@ApplicationContext ctx: Context): WorkManager =
+        WorkManager.getInstance(ctx)
 }

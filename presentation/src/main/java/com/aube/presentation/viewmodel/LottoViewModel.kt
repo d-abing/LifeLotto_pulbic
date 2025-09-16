@@ -15,15 +15,19 @@ import com.aube.presentation.model.LottoUiState
 import com.aube.presentation.model.MatchResult
 import com.aube.presentation.model.MyLottoNumbersUiState
 import com.aube.presentation.model.toUiState
+import com.aube.presentation.util.fortune.LottoPrefs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
 class LottoViewModel @Inject constructor(
+    private val prefs: LottoPrefs,
     private val getMyLottoNumbersUseCase: GetMyLottoNumbersUseCase,
     private val saveMyLottoNumbersUseCase: SaveMyLottoNumbersUseCase,
     private val deleteMyLottoNumbersUseCase: DeleteMyLottoNumbersUseCase,
@@ -48,6 +52,12 @@ class LottoViewModel @Inject constructor(
 
     private var latestNumbers: Pair<List<Int>, Int> = Pair(emptyList(), 0)
     private var matchHistory: List<Int> = emptyList()
+
+    val isBlurred = prefs.blurFlow.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        false
+    )
 
 
     fun loadHome() {
@@ -96,15 +106,16 @@ class LottoViewModel @Inject constructor(
     fun saveMyLottoNumbers(numbers: List<Int>) {
         viewModelScope.launch {
             saveMyLottoNumbersUseCase(numbers)
+            loadMyLottoNumbers()
+            _newCombination.value = emptyList()
         }
-        loadMyLottoNumbers()
     }
 
     fun deleteMyLottoNumbers(idx: Int) {
         viewModelScope.launch {
             deleteMyLottoNumbersUseCase(idx)
+            loadMyLottoNumbers()
         }
-        loadMyLottoNumbers()
     }
 
     fun deleteNumberFromCombination(number: Int) {
@@ -130,6 +141,10 @@ class LottoViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    fun toggleBlur() = viewModelScope.launch {
+        prefs.setBlurred(!isBlurred.value)
     }
 }
 

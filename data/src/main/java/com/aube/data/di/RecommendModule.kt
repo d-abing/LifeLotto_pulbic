@@ -14,7 +14,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object RecommendedNumbersModule {
+object RecommendModule {
 
     @Provides
     @Singleton
@@ -24,18 +24,7 @@ object RecommendedNumbersModule {
         return RecommendRepositoryImpl(dao)
     }
 
-    @Provides
-    fun provideSaveRecommendedNumbersUseCase(
-        repo: RecommendRepository
-    ) = SaveRecommendedNumbersUseCase(repo)
-
-    @Provides
-    fun provideGetRecommendedNumbersUseCase(
-        repo: RecommendRepository
-    ) = GetRecommendedNumbersUseCase(repo)
-
-    @Provides
-    fun provideDeleteRecommendedNumbersUseCase(
-        repo: RecommendRepository
-    ) = DeleteRecommendedNumbersUseCase(repo)
+    @Provides fun provideSaveRecommendedNumbersUseCase(repo: RecommendRepository) = SaveRecommendedNumbersUseCase(repo)
+    @Provides fun provideGetRecommendedNumbersUseCase(repo: RecommendRepository) = GetRecommendedNumbersUseCase(repo)
+    @Provides fun provideDeleteRecommendedNumbersUseCase(repo: RecommendRepository) = DeleteRecommendedNumbersUseCase(repo)
 }

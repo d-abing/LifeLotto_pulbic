@@ -7,7 +7,7 @@ import java.time.LocalDateTime
 
 @Entity(tableName = "lotto_draw")
 data class LottoDrawEntity(
-    @PrimaryKey val round: Int = 0,
+    @PrimaryKey val round: Int,
     val numbers: List<Int>,
     val date: LocalDateTime,
 )
@@ -27,4 +27,3 @@ fun LottoDraw.toEntity(): LottoDrawEntity {
         date = date
     )
 }
-
