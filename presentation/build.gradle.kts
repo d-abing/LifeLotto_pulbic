@@ -17,23 +17,11 @@ android {
     }
 
     buildTypes {
-        debug {
-            buildConfigField(
-                "String",
-                "ADMOB_BANNER_ID",
-                "\"ca-app-pub-3940256099942544/6300978111\""
-            )
-        }
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
-            )
-            buildConfigField(
-                "String",
-                "ADMOB_BANNER_ID",
-                "\"${project.findProperty("ADMOB_BANNER_ID") ?: ""}\""
             )
         }
     }

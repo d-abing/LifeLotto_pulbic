@@ -133,7 +133,9 @@ class StatisticsViewModel @Inject constructor(
         viewModelScope.launch {
             syncing.value = true
             runCatching { syncDrawHistoryUseCase() }
-                .onFailure { e -> Log.e("StatisticsVM", "Sync failed", e) }
+                .onFailure {
+                    // e -> Log.e("StatisticsVM", "Sync failed", e)
+                }
             syncing.value = false
         }
     }

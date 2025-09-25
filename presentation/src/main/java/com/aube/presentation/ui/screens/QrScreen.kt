@@ -65,9 +65,7 @@ fun QrScreen(
     }
 
     // 최초 자동 요청 여부 저장 (재진입 구분용)
-    val prefs = remember(context) {
-        context.getSharedPreferences("qr_prefs", Context.MODE_PRIVATE)
-    }
+    val prefs = remember(context) { context.getSharedPreferences("qr_prefs", Context.MODE_PRIVATE) }
     var askedOnceEver by remember { mutableStateOf(prefs.getBoolean("camera_asked_once", false)) }
     var lastRequestWasAuto by remember { mutableStateOf(false) }
 

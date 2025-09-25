@@ -14,13 +14,16 @@ import com.aube.presentation.model.RangeFilter
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
 val Context.fortuneDataStore by preferencesDataStore(name = "fortune_prefs")
 val Context.recommendDataStore by preferencesDataStore(name = "recommend_prefs")
 val Context.lottoDataStore by preferencesDataStore(name = "lotto_prefs")
+val Context.notifDataStore by preferencesDataStore(name = "notif_prefs")
 
 object FortunePrefsKeys {
     val LAST_DATE = longPreferencesKey("last_date")
@@ -28,6 +31,10 @@ object FortunePrefsKeys {
     val LAST_SUMMARY = stringPreferencesKey("last_summary")
     val LAST_NUMBERS = stringPreferencesKey("last_numbers")
     val LAST_TIME = stringPreferencesKey("last_time")
+}
+
+object NotifKeys {
+    val ENABLED = booleanPreferencesKey("notif_enabled")
 }
 
 @Singleton
@@ -127,4 +134,18 @@ class LottoPrefs @Inject constructor(
     suspend fun setBlurred(blur: Boolean) {
         ds.edit { it[KEY_BLUR] = blur }
     }
+}
+
+@Singleton
+class NotifPrefs @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
+    private val ds = context.notifDataStore
+
+    val enabledFlow: Flow<Boolean> = ds.data
+        .catch { e -> if (e is IOException) emit(emptyPreferences()) else throw e }
+        .map { it[NotifKeys.ENABLED] ?: false }
+        .distinctUntilChanged()
+
+    suspend fun setEnabled(value: Boolean) = ds.edit { it[NotifKeys.ENABLED] = value }
 }

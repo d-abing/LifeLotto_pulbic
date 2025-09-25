@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 
-
 class NotificationSchedulerImpl @Inject constructor(
     private val workManager: WorkManager,
     @ApplicationContext private val context: Context
@@ -44,7 +43,7 @@ class NotificationSchedulerImpl @Inject constructor(
         val req = OneTimeWorkRequestBuilder<LottoResultWorker>()
             .setInputData(data)
             .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 5, TimeUnit.MINUTES)
+            .setBackoffCriteria(BackoffPolicy.LINEAR, 5, TimeUnit.MINUTES)
             .setConstraints(
                 Constraints.Builder()
                     .setRequiredNetworkType(NetworkType.CONNECTED)

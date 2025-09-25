@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aube.presentation.viewmodel.NotificationSettingsViewModel
 
 @Composable
@@ -47,14 +48,7 @@ fun NotificationScreen(
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val prefs = remember(context) {
-        context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-    }
-
-    // 저장된 토글 상태 (기본 false)
-    var enabled by remember {
-        mutableStateOf(prefs.getBoolean("notif_enabled", false))
-    }
+    val enabled by vm.enabled.collectAsStateWithLifecycle()
 
     // Android 13+ 알림 권한 보유 여부
     var hasPermission by remember {
@@ -68,11 +62,9 @@ fun NotificationScreen(
         hasPermission = granted
         if (granted) {
             vm.enable()
-            enabled = true
-            prefs.edit().putBoolean("notif_enabled", true).apply()
+            vm.toggleEnable(true)
         } else {
-            enabled = false
-            prefs.edit().putBoolean("notif_enabled", false).apply()
+            vm.toggleEnable(false)
         }
     }
 
@@ -109,11 +101,11 @@ fun NotificationScreen(
                             requestPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
                         } else {
                             vm.enable()
-                            enabled = true
+                            vm.toggleEnable(true)
                         }
                     } else {
                         vm.disable()
-                        enabled = false
+                        vm.toggleEnable(false)
                     }
                 }
             )

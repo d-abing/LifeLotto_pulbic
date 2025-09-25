@@ -107,11 +107,6 @@ fun handleDhlotteryQr(
     val canonical = buildCanonicalWinQrUri(raw)
     val openUri = canonical ?: raw
 
-    // 디버깅
-    Log.d(QR_TAG, "raw=[$clean]")
-    Log.d(QR_TAG, "raw host=${raw.host} path=${raw.path} lastSeg=${raw.lastPathSegment} method=${raw.getQueryParameter("method")}")
-    Log.d(QR_TAG, "canonical=$canonical")
-
     // 결과 페이지 열기(원하면 끌 수 있음)
     if (openInCustomTab) {
         CustomTabsIntent.Builder().build().launchUrl(context, openUri)
@@ -121,9 +116,9 @@ fun handleDhlotteryQr(
     val parsed = parseFromQrUri(openUri, sortNumbers)
         ?: parseFromQrUri(raw, sortNumbers) // 혹시 canonical이 null이어도 대비
     if (parsed != null) {
-        Log.d(QR_TAG, "parsed: round=${parsed.round}, sets=${parsed.sets}")
+        // Log.d(QR_TAG, "parsed: round=${parsed.round}, sets=${parsed.sets}")
         onParsed(parsed.round, parsed.sets)
     } else {
-        Log.d(QR_TAG, "parse failed (not a dhlottery QR or invalid v)")
+        // Log.d(QR_TAG, "parse failed (not a dhlottery QR or invalid v)")
     }
 }

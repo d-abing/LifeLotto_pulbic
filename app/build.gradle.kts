@@ -13,24 +13,20 @@ android {
         applicationId = "com.aube.lifelotto"
         minSdk = 28
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         debug {
-            manifestPlaceholders["ADMOB_APP_ID"] =
-                "ca-app-pub-3940256099942544~3347511713"
             isMinifyEnabled = false
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
         }
 
         release {
-            manifestPlaceholders["ADMOB_APP_ID"] =
-                project.findProperty("ADMOB_APP_ID")?.toString() ?: ""
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -55,6 +51,9 @@ android {
     }
     kapt {
         correctErrorTypes = true
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
 
