@@ -1,6 +1,5 @@
 package com.aube.presentation.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aube.domain.model.LottoDraw

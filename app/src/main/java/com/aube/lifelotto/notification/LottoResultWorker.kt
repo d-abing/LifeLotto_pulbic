@@ -1,7 +1,6 @@
 package com.aube.lifelotto.notification
 
 import android.content.Context
-import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -29,38 +28,38 @@ class LottoResultWorker @AssistedInject constructor(
         ensureNotificationChannel(applicationContext)
 
         val scheduledAtMillis = inputData.getLong(KEY_SCHEDULED_AT, 0L)
-        if (scheduledAtMillis <= 0L) {
-            // Log.w("LottoResultWorker", "Retry: missing scheduledAt")
-            return Result.retry()
-        }
+        if (scheduledAtMillis <= 0L) return Result.retry()
         val scheduledInstant = Instant.ofEpochMilli(scheduledAtMillis)
 
         val inputRound = inputData.getInt(KEY_ROUND, -1)
         var round = if (inputRound > 0) inputRound else roundForDrawInstant(scheduledInstant)
-        // Log.d("LottoResultWorker", "input round=$inputRound -> using round=$round")
 
-        val expireWindow = java.time.Duration.ofHours(2)   // 2시간
+        // 만료 윈도우(발표 시점+2h 지나면 이번 작업은 종료하고 다음 회차 예약)
+        val expireWindow = java.time.Duration.ofHours(2)
         if (Instant.now().isAfter(scheduledInstant.plus(expireWindow))) {
-            // Log.w("LottoResultWorker", "Expired window: skip this round (round=$round). Scheduling next.")
-            scheduler.enable()          // 다음 회차 예약
-            return Result.success()     // 이번 작업은 조용히 종료
+            scheduler.enable()   // 다음 회차 예약
+            return Result.success()
         }
 
-        val result = runCatching { getLottoResultUseCase(round) }.getOrElse {
-            // Log.e("LottoResultWorker", "Retry: getLottoResult failed for round=$round", it)
+        // 결과 가져오기 (nullable)
+        val result = runCatching { getLottoResultUseCase(round) }.getOrNull()
+        if (result == null) {
+            // 발표 전/미발표 또는 일시 실패 → 재시도
             return Result.retry()
         }
 
         val winning = result.winningNumbers
         val bonus = result.bonus
-        if (winning.isNullOrEmpty() || winning.size < 6) {
-            // Log.w("LottoResultWorker", "Retry: result not ready (round=$round)")
+        // 안전 가드 (번호 6개 + 보너스 필수)
+        if (winning == null || winning.size != 6 || bonus == null) {
             return Result.retry()
         }
 
+        // 등수 계산
         val myThisRound = myRepo.getBeforeDraw(round)
         val items = myThisRound.map { set -> set to rankOf(set.numbers, winning, bonus) }
 
+        // 알림 발송
         showResultNotification(
             context = applicationContext,
             round = round,

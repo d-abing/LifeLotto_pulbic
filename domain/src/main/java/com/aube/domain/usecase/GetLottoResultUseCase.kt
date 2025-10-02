@@ -7,7 +7,7 @@ import javax.inject.Inject
 class GetLottoResultUseCase @Inject constructor(
     private val repository: LottoRepository
 ) {
-    suspend operator fun invoke(round: Int): LottoResult {
+    suspend operator fun invoke(round: Int): LottoResult? {
         return repository.getLottoResult(round)
     }
 }

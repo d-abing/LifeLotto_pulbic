@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
@@ -23,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
@@ -92,6 +94,10 @@ fun QrScreen(
             }
         }
     )
+
+    BackHandler {
+        onClose()
+    }
 
     // 첫 진입 시 자동 요청
     LaunchedEffect(Unit) {
@@ -210,7 +216,8 @@ fun QrScreen(
         )
         // 스캐너 화면에서도 닫기 버튼 유지(요구사항과 동일한 위치)
         IconButton(
-            modifier = Modifier.align(Alignment.TopEnd).padding(12.dp),
+            modifier = Modifier.align(Alignment.TopEnd).padding(12.dp)
+                .background(MaterialTheme.colorScheme.tertiary.copy(0.4f), CircleShape),
             onClick = onClose
         ) { Icon(Icons.Default.Close, contentDescription = "닫기") }
     }

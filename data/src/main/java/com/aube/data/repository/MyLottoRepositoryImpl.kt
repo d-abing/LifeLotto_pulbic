@@ -47,24 +47,43 @@ class MyLottoRepositoryImpl @Inject constructor(
         val latest = estimateLatestRound()
         val cache = mutableMapOf<Int, LottoResult>()
 
+        suspend fun fetchSafe(round: Int): LottoResult? {
+            cache[round]?.let { return it }
+
+            val dto = runCatching { api.getLottoResult(round) }.getOrNull() ?: return null
+
+            // (선택) returnValue가 있다면 success만 통과
+            if (dto.returnValue != null && dto.returnValue != "success") return null
+
+            // 회차 일치 확인 (서버가 값을 주면 검증, 없으면 스킵)
+            val dtoRound = dto.round
+            if (dtoRound != null && dtoRound != round) return null
+
+            // 번호 6개/보너스/날짜 모두 유효할 때만 매핑
+            val numsNullable = listOf(dto.no1, dto.no2, dto.no3, dto.no4, dto.no5, dto.no6)
+            if (numsNullable.any { it == null }) return null
+            val numbers = numsNullable.filterNotNull()
+
+            val bonus = dto.bonus ?: return null
+            val dateStr = dto.date?.takeIf { it.isNotBlank() } ?: return null
+
+            val mapped = LottoResult(
+                round = dtoRound ?: round,
+                date = dateStr,                             // String 유지(또는 여기서 LocalDate 파싱)
+                winningNumbers = numbers,
+                bonus = bonus,
+                firstPrize = dto.firstPrize ?: 0L,
+                firstCount = dto.firstCount ?: 0
+            )
+            cache[round] = mapped
+            return mapped
+        }
+
         for (e in entities) {
+            // 이미 등수 있음, 또는 미래 회차는 스킵
             if (e.rank != null || e.round > latest) continue
-            val result = cache[e.round] ?: run {
-                val dto = runCatching { api.getLottoResult(e.round) }.getOrNull()
-                val nums = dto?.let { listOfNotNull(it.no1, it.no2, it.no3, it.no4, it.no5, it.no6) }
-                if (dto == null || nums == null || nums.size != 6) null else {
-                    val mapped = LottoResult(
-                        round = e.round,
-                        date = dto.date,
-                        winningNumbers = nums,
-                        bonus = dto.bonus,
-                        firstPrize = dto.firstPrize,
-                        firstCount = dto.firstCount
-                    )
-                    cache[e.round] = mapped
-                    mapped
-                }
-            } ?: continue
+
+            val result = fetchSafe(e.round) ?: continue
 
             val newRank = rankOf(e.numbers, result.winningNumbers, result.bonus)
             if (newRank != null) {

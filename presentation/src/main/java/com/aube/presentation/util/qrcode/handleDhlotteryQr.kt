@@ -2,7 +2,6 @@ package com.aube.presentation.util.qrcode
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.browser.customtabs.CustomTabsIntent
 
 private const val QR_TAG = "QR"

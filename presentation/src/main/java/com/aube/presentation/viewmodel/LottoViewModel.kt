@@ -71,7 +71,9 @@ class LottoViewModel @Inject constructor(
         viewModelScope.launch {
             _lottoUiState.value = _lottoUiState.value.copy(isLoading = true)
             val result = getLottoResultUseCase(round)
-            _lottoUiState.value = result.toUiState().copy(isLoading = false)
+            result?.let {
+                _lottoUiState.value = it.toUiState().copy(isLoading = false)
+            } ?: loadLotto(round - 1)
         }
     }
 
@@ -89,14 +91,16 @@ class LottoViewModel @Inject constructor(
         }
     }
 
-    fun getLatestNumbers() {
+    private fun getLatestNumbers(round: Int = latestRound.value) {
         viewModelScope.launch {
-            val latestResult = getLottoResultUseCase(latestRound.value)
-            latestNumbers = Pair(latestResult.winningNumbers, latestResult.bonus)
+            val latestResult = getLottoResultUseCase(round)
+            latestResult?. let {
+                latestNumbers = Pair(latestResult.winningNumbers, latestResult.bonus)
+            } ?: getLatestNumbers(round - 1)
         }
     }
 
-    fun getMyLottoHistory() {
+    private fun getMyLottoHistory() {
         viewModelScope.launch {
             val myNumbersHistory  = getMyLottoNumbersHistoryUseCase()
             matchHistory = myNumbersHistory.mapNotNull { it.rank }
@@ -130,10 +134,10 @@ class LottoViewModel @Inject constructor(
 
     fun onQrParsed(round: Int, sets: List<List<Int>>) {
         viewModelScope.launch {
+            val r = getLottoResultUseCase(round)
+
             sets.forEach { numbers ->
-                // 등수 계산은 round별 결과 받아서 numbers마다
-                val r = getLottoResultUseCase(round)
-                val rank = rankOf(numbers, r.winningNumbers, r.bonus)
+                val rank = rankOf(numbers, r?.winningNumbers ?: emptyList(), r?.bonus ?: -1)
                 saveMyLottoNumbersUseCase(
                     numbers = numbers,
                     round = round,

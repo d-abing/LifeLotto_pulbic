@@ -1,5 +1,6 @@
 package com.aube.presentation.ui.component.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -88,9 +89,12 @@ fun RoundSelector(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             modifier = Modifier.wrapContentWidth()
+                .background(MaterialTheme.colorScheme.background)
         ) {
             rounds.forEachIndexed { idx, round ->
                 DropdownMenuItem(
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.background),
                     text = {
                         Text(
                             text = "${round}회 (${dates.getOrNull(idx) ?: "날짜 없음"})",

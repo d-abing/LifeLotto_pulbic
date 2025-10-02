@@ -25,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -118,7 +117,6 @@ fun MyNumberCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(CardDefaults.shape)
                     .blur(blurRadius),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
