@@ -7,4 +7,5 @@ interface RecommendRepository {
     fun getSavedNumbers(): Flow<List<LottoSet>>
     suspend fun save(numbers: List<Int>)
     suspend fun deleteById(id: Int)
+    suspend fun deleteAll()
 }

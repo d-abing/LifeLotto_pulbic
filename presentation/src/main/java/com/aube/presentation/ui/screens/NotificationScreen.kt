@@ -82,7 +82,7 @@ fun NotificationScreen(
 
 
         Text(
-            text = "매주 토요일 8시 48분에\n당첨 번호와 결과를 보내드립니다",
+            text = "매주 토요일 8시 50분 이후에\n당첨 번호와 결과를 보내드립니다",
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(8.dp))

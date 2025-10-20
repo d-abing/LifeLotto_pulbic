@@ -3,7 +3,8 @@ package com.aube.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aube.domain.model.LottoSet
-import com.aube.domain.usecase.DeleteRecommendedNumbersUseCase
+import com.aube.domain.usecase.DeleteAllRecommendedNumbersUseCase
+import com.aube.domain.usecase.DeleteRecommendedNumberUseCase
 import com.aube.domain.usecase.GetRecommendedNumbersUseCase
 import com.aube.domain.usecase.SaveRecommendedNumbersUseCase
 import com.aube.presentation.model.LottoRecommendation
@@ -30,7 +31,8 @@ class RecommendViewModel @Inject constructor(
     private val prefs: RecommendationPrefs,
     private val saveRecommendedNumberUseCase: SaveRecommendedNumbersUseCase,
     private val getRecommendedNumbersUseCase: GetRecommendedNumbersUseCase,
-    private val deleteRecommendedNumberUseCase: DeleteRecommendedNumbersUseCase
+    private val deleteRecommendedNumberUseCase: DeleteRecommendedNumberUseCase,
+    private val deleteAllRecommendedNumbersUseCase: DeleteAllRecommendedNumbersUseCase
 ) : ViewModel() {
 
     private val _recommendNumbers = MutableStateFlow(RecommendUiState())
@@ -89,5 +91,9 @@ class RecommendViewModel @Inject constructor(
 
     fun deleteCurrent(id: Int) = viewModelScope.launch {
         runCatching { deleteRecommendedNumberUseCase(id) }
+    }
+
+    fun deleteAll() = viewModelScope.launch {
+        runCatching { deleteAllRecommendedNumbersUseCase() }
     }
 }

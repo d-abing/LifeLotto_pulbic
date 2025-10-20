@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 
 @Entity(
     tableName = "my_lotto_numbers",
-    indices = [Index(value = ["numbers"], unique = true)]
+    indices = [Index(value = ["numbers", "round"], unique = true)]
 )
 data class MyLottoNumbersEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,

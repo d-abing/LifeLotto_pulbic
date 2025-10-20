@@ -32,12 +32,24 @@ class MyLottoRepositoryImpl @Inject constructor(
         return dao.getAll().map { it.toDomain() }
     }
 
+    override suspend fun getMyNumbers(round: Int): List<MyLottoSet> {
+        return dao.getMyNumbers(round).map { it.toDomain() }
+    }
+
     override suspend fun getBeforeDraw(round: Int): List<MyLottoSet> {
         return dao.getBeforeDraw(round).map { it.toDomain() }
     }
 
-    override suspend fun deleteMyNumbers(id: Int) {
+    override suspend fun deleteMyNumber(id: Int) {
         dao.deleteById(id)
+    }
+
+    override suspend fun deleteBeforeDraw(round: Int) {
+        dao.deleteBeforeDraw(round)
+    }
+
+    override suspend fun deleteAll() {
+        dao.deleteAll()
     }
 
     private suspend fun refreshAllRanks() {

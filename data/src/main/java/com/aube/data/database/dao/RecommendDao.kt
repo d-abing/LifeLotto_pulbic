@@ -17,4 +17,7 @@ interface RecommendDao {
 
     @Query("DELETE FROM recommended_numbers WHERE id = :id")
     suspend fun deleteById(id: Int)
+
+    @Query("DELETE FROM recommended_numbers")
+    suspend fun deleteAll()
 }

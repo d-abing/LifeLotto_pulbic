@@ -3,7 +3,10 @@ package com.aube.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aube.domain.model.MyLottoSet
-import com.aube.domain.usecase.DeleteMyLottoNumbersUseCase
+import com.aube.domain.usecase.DeleteAllBeforeDrawMyLottoNumbersUseCase
+import com.aube.domain.usecase.DeleteAllMyLottoNumbersUseCase
+import com.aube.domain.usecase.DeleteMyLottoNumberUseCase
+import com.aube.domain.usecase.GetBeforeDrawMyLottoNumbersUseCase
 import com.aube.domain.usecase.GetLottoResultUseCase
 import com.aube.domain.usecase.GetMyLottoNumbersHistoryUseCase
 import com.aube.domain.usecase.GetMyLottoNumbersUseCase
@@ -29,8 +32,11 @@ import javax.inject.Inject
 class LottoViewModel @Inject constructor(
     private val prefs: LottoPrefs,
     private val getMyLottoNumbersUseCase: GetMyLottoNumbersUseCase,
+    private val getBeforeDrawMyLottoNumbersUseCase: GetBeforeDrawMyLottoNumbersUseCase,
     private val saveMyLottoNumbersUseCase: SaveMyLottoNumbersUseCase,
-    private val deleteMyLottoNumbersUseCase: DeleteMyLottoNumbersUseCase,
+    private val deleteMyLottoNumbersUseCase: DeleteMyLottoNumberUseCase,
+    private val deleteAllBeforeDrawMyLottoNumbersUseCase: DeleteAllBeforeDrawMyLottoNumbersUseCase,
+    private val deleteAllMyLottoNumbersUseCase: DeleteAllMyLottoNumbersUseCase,
     private val getLottoResultUseCase: GetLottoResultUseCase,
     private val getMyLottoNumbersHistoryUseCase: GetMyLottoNumbersHistoryUseCase,
 ) : ViewModel() {
@@ -59,15 +65,21 @@ class LottoViewModel @Inject constructor(
         false
     )
 
-
     fun loadHome() {
-        loadLotto()
-        loadMyLottoNumbers()
-        getLatestNumbers()
-        getMyLottoHistory()
+        viewModelScope.launch {
+            loadLotto()
+            getLatestNumbers()
+            getMyLottoHistory()
+            loadMyLottoNumbers()
+        }
     }
 
     fun loadLotto(round: Int = latestRound.value) {
+        _latestRound.value = round
+        refreshLotto(round)
+    }
+    
+    fun refreshLotto(round: Int) {
         viewModelScope.launch {
             _lottoUiState.value = _lottoUiState.value.copy(isLoading = true)
             val result = getLottoResultUseCase(round)
@@ -77,39 +89,33 @@ class LottoViewModel @Inject constructor(
         }
     }
 
-    private fun loadMyLottoNumbers() {
-        viewModelScope.launch {
-            val beforeDraw = getMyLottoNumbersUseCase(latestRound.value + 1)
-            val myNumbers = getMyLottoNumbersUseCase(latestRound.value) - beforeDraw.toSet()
-            val matchResult = calculateMatchResult(latestNumbers, myNumbers)
-            _myLottoNumbersUiState.value = MyLottoNumbersUiState(
-                beforeDraw = beforeDraw,
-                myNumbers = myNumbers - beforeDraw.toSet(),
-                matchHistory = matchHistory,
-                matchResult = matchResult,
-            )
-        }
+    private suspend fun loadMyLottoNumbers() {
+        val beforeDraw = getBeforeDrawMyLottoNumbersUseCase(latestRound.value + 1)
+        val myNumbers = getMyLottoNumbersUseCase(latestRound.value)
+        val matchResult = calculateMatchResult(latestNumbers, myNumbers)
+        _myLottoNumbersUiState.value = MyLottoNumbersUiState(
+            beforeDraw = beforeDraw,
+            myNumbers = myNumbers - beforeDraw.toSet(),
+            matchHistory = matchHistory,
+            matchResult = matchResult,
+        )
     }
 
-    private fun getLatestNumbers(round: Int = latestRound.value) {
-        viewModelScope.launch {
-            val latestResult = getLottoResultUseCase(round)
-            latestResult?. let {
-                latestNumbers = Pair(latestResult.winningNumbers, latestResult.bonus)
-            } ?: getLatestNumbers(round - 1)
-        }
+    private suspend fun getLatestNumbers(round: Int = latestRound.value) {
+        val latestResult = getLottoResultUseCase(round)
+        latestResult?. let {
+            latestNumbers = Pair(latestResult.winningNumbers, latestResult.bonus)
+        } ?: getLatestNumbers(round - 1)
     }
 
-    private fun getMyLottoHistory() {
-        viewModelScope.launch {
-            val myNumbersHistory  = getMyLottoNumbersHistoryUseCase()
-            matchHistory = myNumbersHistory.mapNotNull { it.rank }
-        }
+    private suspend fun getMyLottoHistory() {
+        val myNumbersHistory  = getMyLottoNumbersHistoryUseCase()
+        matchHistory = myNumbersHistory.mapNotNull { it.rank }
     }
 
-    fun saveMyLottoNumbers(numbers: List<Int>) {
+    fun saveMyLottoNumbers(numbers: List<Int>, round: Int? = null) {
         viewModelScope.launch {
-            saveMyLottoNumbersUseCase(numbers)
+            saveMyLottoNumbersUseCase(numbers, round)
             loadMyLottoNumbers()
             _newCombination.value = emptyList()
         }
@@ -118,6 +124,20 @@ class LottoViewModel @Inject constructor(
     fun deleteMyLottoNumbers(idx: Int) {
         viewModelScope.launch {
             deleteMyLottoNumbersUseCase(idx)
+            loadMyLottoNumbers()
+        }
+    }
+
+    fun deleteBeforeDraw() {
+        viewModelScope.launch {
+            deleteAllBeforeDrawMyLottoNumbersUseCase(round = latestRound.value + 1)
+            loadMyLottoNumbers()
+        }
+    }
+
+    fun deleteAll() {
+        viewModelScope.launch {
+            deleteAllMyLottoNumbersUseCase()
             loadMyLottoNumbers()
         }
     }

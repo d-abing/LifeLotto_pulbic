@@ -13,7 +13,7 @@ import com.aube.data.model.entity.RecommendedNumbersEntity
 
 @Database(
     entities = [MyLottoNumbersEntity::class, RecommendedNumbersEntity::class, LottoDrawEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(LifeLottoTypeConverters::class)

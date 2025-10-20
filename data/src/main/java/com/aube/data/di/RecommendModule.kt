@@ -3,7 +3,8 @@ package com.aube.data.di
 import com.aube.data.database.dao.RecommendDao
 import com.aube.data.repository.RecommendRepositoryImpl
 import com.aube.domain.repository.RecommendRepository
-import com.aube.domain.usecase.DeleteRecommendedNumbersUseCase
+import com.aube.domain.usecase.DeleteAllRecommendedNumbersUseCase
+import com.aube.domain.usecase.DeleteRecommendedNumberUseCase
 import com.aube.domain.usecase.GetRecommendedNumbersUseCase
 import com.aube.domain.usecase.SaveRecommendedNumbersUseCase
 import dagger.Module
@@ -26,5 +27,6 @@ object RecommendModule {
 
     @Provides fun provideSaveRecommendedNumbersUseCase(repo: RecommendRepository) = SaveRecommendedNumbersUseCase(repo)
     @Provides fun provideGetRecommendedNumbersUseCase(repo: RecommendRepository) = GetRecommendedNumbersUseCase(repo)
-    @Provides fun provideDeleteRecommendedNumbersUseCase(repo: RecommendRepository) = DeleteRecommendedNumbersUseCase(repo)
+    @Provides fun provideDeleteRecommendedNumbersUseCase(repo: RecommendRepository) = DeleteRecommendedNumberUseCase(repo)
+    @Provides fun provideDeleteAllRecommendedNumbersUseCase(repo: RecommendRepository) = DeleteAllRecommendedNumbersUseCase(repo)
 }

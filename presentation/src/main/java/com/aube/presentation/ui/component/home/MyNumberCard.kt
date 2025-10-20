@@ -46,7 +46,13 @@ fun MyNumberCard(
     val matchHistory = uiState.matchHistory
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ){
+                onVisibilityClick()
+            },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.tertiary
         ),
@@ -55,7 +61,6 @@ fun MyNumberCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -135,7 +140,7 @@ fun MyNumberCard(
                         contentAlignment = Alignment.Center
                     ) {
                         Button(onClick = onRegisterClick) {
-                            Text("내 로또 번호 등록하기")
+                            Text("내 로또 번호 등록 / 삭제")
                         }
                     }
                 } else {
@@ -198,7 +203,7 @@ fun MyNumberCard(
                 }
 
                 Text(
-                    text = "지난 회차 당첨 결과",
+                    text = "누적 당첨 결과",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )

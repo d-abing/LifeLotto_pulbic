@@ -39,9 +39,10 @@ fun RoundSelector(
     onRoundSelect: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val count = 20
     var expanded by remember { mutableStateOf(false) }
     val rounds = remember(latestRound) {
-        (latestRound downTo (latestRound - 20).coerceAtLeast(1)).toList()
+        (latestRound downTo (latestRound - count).coerceAtLeast(1)).toList()
     }
 
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -53,7 +54,7 @@ fun RoundSelector(
 
     val dates = remember(latestDate) {
         if (latestDate != null) {
-            (0 until 21).map { offset ->
+            (0..count).map { offset ->
                 latestDate.minusWeeks(offset.toLong()).format(formatter)
             }
         } else {

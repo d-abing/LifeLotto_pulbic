@@ -31,7 +31,7 @@ class NotificationSchedulerImpl @Inject constructor(
 
         val now = Instant.now()
         val drawInstant = nextDrawInstant(now)
-        val target = drawInstant.plusSeconds(180)
+        val target = drawInstant.plusSeconds(0)
         val delayMs = Duration.between(now, target).toMillis().coerceAtLeast(0)
         val round = roundForDrawInstant(drawInstant)
 

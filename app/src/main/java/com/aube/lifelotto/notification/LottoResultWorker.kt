@@ -56,7 +56,7 @@ class LottoResultWorker @AssistedInject constructor(
         }
 
         // 등수 계산
-        val myThisRound = myRepo.getBeforeDraw(round)
+        val myThisRound = myRepo.getMyNumbers(round)
         val items = myThisRound.map { set -> set to rankOf(set.numbers, winning, bonus) }
 
         // 알림 발송

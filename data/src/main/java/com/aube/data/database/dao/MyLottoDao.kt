@@ -14,10 +14,19 @@ interface MyLottoDao {
     suspend fun getAll(): List<MyLottoNumbersEntity>
 
     @Query("SELECT * FROM my_lotto_numbers WHERE round = :round ORDER BY date")
+    suspend fun getMyNumbers(round: Int): List<MyLottoNumbersEntity>
+
+    @Query("SELECT * FROM my_lotto_numbers WHERE round >= :round ORDER BY date")
     suspend fun getBeforeDraw(round: Int): List<MyLottoNumbersEntity>
 
     @Query("DELETE FROM my_lotto_numbers WHERE id = :id")
     suspend fun deleteById(id: Int)
+
+    @Query("DELETE FROM my_lotto_numbers WHERE round >= :round")
+    suspend fun deleteBeforeDraw(round: Int)
+
+    @Query("DELETE FROM my_lotto_numbers")
+    suspend fun deleteAll()
 
     @Query("UPDATE my_lotto_numbers SET rank = :rank WHERE id = :id")
     suspend fun updateRank(id: Int, rank: Int?)

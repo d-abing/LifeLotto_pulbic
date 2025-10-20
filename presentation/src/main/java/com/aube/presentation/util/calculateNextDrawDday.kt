@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 fun calculateNextDrawDuration(): Duration {
     val now = LocalDateTime.now()
-    val nextDrawDateTime = now.with(DayOfWeek.SATURDAY).withHour(20).withMinute(45).withSecond(0)
+    val nextDrawDateTime = now.with(DayOfWeek.SATURDAY).withHour(20).withMinute(35).withSecond(0)
 
     val target = if (now > nextDrawDateTime) nextDrawDateTime.plusWeeks(1) else nextDrawDateTime
     return Duration.between(now, target)

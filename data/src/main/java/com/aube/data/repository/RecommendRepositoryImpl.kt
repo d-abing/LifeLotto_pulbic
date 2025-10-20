@@ -30,4 +30,8 @@ class RecommendRepositoryImpl @Inject constructor(
     override suspend fun deleteById(id: Int) {
         dao.deleteById(id)
     }
+
+    override suspend fun deleteAll() {
+        dao.deleteAll()
+    }
 }
